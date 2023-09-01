@@ -1,4 +1,4 @@
-use std::env; // Used to collect arguments from command line
+use std::{env, error::Error}; // Used to collect arguments from command line
 use clap::Parser; // Not currently implemented but will be used in future
 use walkdir::WalkDir; // Used to get the contents of folder
 use std::io; // Used to read and write files
@@ -11,6 +11,7 @@ struct CommandLine {
 }
 
 // An enum for a piece of the JohnnyDecimal tree, that is either a Folder or a File
+#[derive(Clone)]
 enum JohnnyTreeMember {
     Folder(String, Vec<JohnnyTreeMember>, String), //
     File(String) 
@@ -28,8 +29,30 @@ impl JohnnyTreeMember {
         JohnnyTreeMember::Folder(path, init_vector, code)
     }
 
-    fn new_child(mut self, new_member: JohnnyTreeMember) -> self {
-        self
+    fn new_child(mut self, new_member: JohnnyTreeMember) {
+        self = match self {
+            JohnnyTreeMember::File(_) => self,
+            JohnnyTreeMember::Folder(filepath, mut children, code) => {
+                children.push(new_member);
+                JohnnyTreeMember::Folder(filepath, children, code)
+            }
+        };
+    }
+
+    fn get_path(&self) -> String {
+        match self {
+            JohnnyTreeMember::File(filepath) => String::from(filepath),
+            JohnnyTreeMember::Folder(filepath, _ , _ ) => String::from(filepath)
+        }
+    }
+
+    fn get_children(&self) -> Vec<JohnnyTreeMember> {
+        let vector: Vec<JohnnyTreeMember>;
+        vector = match self {
+            JohnnyTreeMember::File(_) => vec![JohnnyTreeMember::new_file(String::from("NULL"))],
+            JohnnyTreeMember::Folder(_, children, _) => children.clone()
+        };
+        vector
     }
 }
 
@@ -52,12 +75,21 @@ fn scan() -> Result<JohnnyTreeMember, io::Error> {
         if let JohnnyTreeMember::Folder(filepath, _, _) = member {
             path_to_member = filepath;
             }
-        println!("{}", path_to_member);
+        
     }
     
     Ok(JohnnyTreeMember::File("Test".to_string()))
 }
 
+fn testbench() {
+    let mut startingmember = JohnnyTreeMember::new_folder(String::from("test/subtest"));
+    startingmember.new_child(JohnnyTreeMember::new_file(String::from("test/subtest/subsubtest")));
+    let data = startingmember.get_path();
+    let children = startingmember.get_children();
+    println!("Startingmember path: {}", data);
+    println!("Submember path: {}", children[0].get_path());
+
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -66,6 +98,8 @@ fn main() {
         let _ = scan();
     } else if args[1] == String::from("path") {
         println!("Finding path to {}", args[2]);
+    } else if args[1] == String::from("testbench") {
+        testbench();
     }
     
 }
