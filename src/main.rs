@@ -1,4 +1,4 @@
-use std::{env, error::Error}; // Used to collect arguments from command line
+use std::{env, error::Error, process::exit}; // Used to collect arguments from command line
 use clap::Parser; // Not currently implemented but will be used in future
 use walkdir::WalkDir; // Used to get the contents of folder
 use std::io; // Used to read and write files
@@ -38,6 +38,21 @@ impl JohnnyTreeMember {
             }
         };
     }
+
+    /* fn new_child_2(&mut self, new_member: JohnnyTreeMember) {
+        let path = self.get_path();
+        let mut children = self.get_children();
+        children.push(new_member);
+        let self_updated = JohnnyTreeMember::new_folder(path);
+
+        self = match self {
+            JohnnyTreeMember::File(_) => self,
+            JohnnyTreeMember::Folder(_, _, _) => &mut self_updated
+        }
+        
+
+
+    } */
 
     fn get_path(&self) -> String {
         match self {
@@ -81,15 +96,15 @@ fn scan() -> Result<JohnnyTreeMember, io::Error> {
     Ok(JohnnyTreeMember::File("Test".to_string()))
 }
 
-fn testbench() {
-    let mut startingmember = JohnnyTreeMember::new_folder(String::from("test/subtest"));
-    startingmember.new_child(JohnnyTreeMember::new_file(String::from("test/subtest/subsubtest")));
-    let data = startingmember.get_path();
-    let children = startingmember.get_children();
-    println!("Startingmember path: {}", data);
-    println!("Submember path: {}", children[0].get_path());
+// fn testbench() {
+//     let mut startingmember = JohnnyTreeMember::new_folder(String::from("test/subtest"));
+//     startingmember.new_child(JohnnyTreeMember::new_file(String::from("test/subtest/subsubtest")));
+//     let data = startingmember.get_path();
+//     let children = startingmember.get_children();
+//     println!("Startingmember path: {}", data);
+//     println!("Submember path: {}", children[0].get_path());
 
-}
+// }
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -99,7 +114,10 @@ fn main() {
     } else if args[1] == String::from("path") {
         println!("Finding path to {}", args[2]);
     } else if args[1] == String::from("testbench") {
-        testbench();
+        //testbench();
+    } else {
+        println!("Unknown command. Please try again.");
+        exit(1);
     }
     
 }
