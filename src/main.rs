@@ -1,4 +1,4 @@
-use std::{env, error::Error, process::exit}; // Used to collect arguments from command line
+use std::{env, error::Error, process::exit, collections::HashMap, path::Path}; // Used to collect arguments from command line
 use clap::Parser; // Not currently implemented but will be used in future
 use walkdir::WalkDir; // Used to get the contents of folder
 use std::io; // Used to read and write files
@@ -71,6 +71,22 @@ impl JohnnyTreeMember {
     }
 }
 
+fn scan_to_map() { // -> HashMap<String, String> {
+    let mut map: HashMap<String, String> = HashMap::new();
+    for location in WalkDir::new("C:/users/nateb/JohnnyDecimal").min_depth(3).max_depth(3) {
+        let item = location.unwrap();
+        let filename = match item.path().to_str() {
+            Some(name) => name,
+            None => panic!("Reading error!")
+        };
+        println!("{}", filename);
+    }
+}
+
+// fn extract_code(item) -> String {
+
+// }
+
 fn scan() -> Result<JohnnyTreeMember, io::Error> {
     let _ = JohnnyTreeMember::new_file("test".to_string());
     let toplevel = "C:/Users/nateb/JohnnyDecimal"; // Location to start searching from
@@ -115,6 +131,8 @@ fn main() {
         println!("Finding path to {}", args[2]);
     } else if args[1] == String::from("testbench") {
         //testbench();
+    } else if args[1] == String::from("keys") {
+        scan_to_map();
     } else {
         println!("Unknown command. Please try again.");
         exit(1);
