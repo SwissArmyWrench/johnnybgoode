@@ -1,5 +1,5 @@
-use std::{env, error::Error, process::exit, collections::HashMap, path::Path}; // Used to collect arguments from command line
-use clap::Parser; // Not currently implemented but will be used in future
+use std::{env, error::Error, process::exit, collections::HashMap, path::{Path, PathBuf}}; // Used to collect arguments from command line
+use clap::{Parser, builder::StringValueParser}; // Not currently implemented but will be used in future
 use walkdir::WalkDir; // Used to get the contents of folder
 use std::io; // Used to read and write files
 
@@ -10,7 +10,7 @@ struct CommandLine {
     path: std::path::PathBuf,
 }
 
-// An enum for a piece of the JohnnyDecimal tree, that is either a Folder or a File
+// An enum for a piece of the JohnnyDecimal tree, that is either a Folder or a File // DEPRECATED
 #[derive(Clone)]
 enum JohnnyTreeMember {
     Folder(String, Vec<JohnnyTreeMember>, String), //
@@ -71,16 +71,32 @@ impl JohnnyTreeMember {
     }
 }
 
-fn scan_to_map() { // -> HashMap<String, String> {
-    let mut map: HashMap<String, String> = HashMap::new();
-    for location in WalkDir::new("C:/users/nateb/JohnnyDecimal").min_depth(3).max_depth(3) {
-        let item = location.unwrap();
-        let filename = match item.path().to_str() {
-            Some(name) => name,
-            None => panic!("Reading error!")
-        };
-        println!("{}", filename);
+struct JohnnyItem {
+    key: String,
+    path: PathBuf
+}
+
+impl JohnnyItem {
+    fn new(&mut self, key: String, path: PathBuf) {
+        self.key = key;
+        self.path = path;
     }
+}
+
+fn scan_to_map() -> HashMap<String, PathBuf> {
+    let mut map: HashMap<String, PathBuf> = HashMap::new();
+    for location in WalkDir::new("C:/users/nateb/JohnnyDecimal").min_depth(3).max_depth(3) {
+        let loc_code = String::from("A12.34"); //UPDATE WHEN LOC CODE PARSER IS BUILT
+        let item = location.unwrap();
+        let filepath = item.into_path();
+        map.insert(loc_code, filepath);
+        /*let printable = match map.get(loc_code).to_str() {
+            Some(name) => name,
+            None => panic!("Error reading files")
+        };
+        println!("{}", printable); */
+    } 
+    map
 }
 
 // fn extract_code(item) -> String {
@@ -122,16 +138,24 @@ fn scan() -> Result<JohnnyTreeMember, io::Error> {
 
 // }
 
+fn get_path(location: String) -> PathBuf {
+    let map = scan_to_map();
+    let path = map.get(&location);
+    path.unwrap().to_owned()
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
-    if args[1] == String::from("scan") {
+    if args[1] == String::from("scan") {  // Runs the scan //TODO: Cache scan results in some way 
         println!("Scanning Johnny Decimal file system...");
         let _ = scan();
-    } else if args[1] == String::from("path") {
-        println!("Finding path to {}", args[2]);
-    } else if args[1] == String::from("testbench") {
+    } else if args[1] == String::from("path") { // Returns a path to a given location code
+        let arg = &args[2];
+        println!("Finding path to {}...", arg);
+        let _ = get_path(String::from(arg));
+    } else if args[1] == String::from("testbench") { // Test cases // TODO: Deprecate in favor of using actual Rust tests
         //testbench();
-    } else if args[1] == String::from("keys") {
+    } else if args[1] == String::from("keys") { // Runs updated scan method
         scan_to_map();
     } else {
         println!("Unknown command. Please try again.");
