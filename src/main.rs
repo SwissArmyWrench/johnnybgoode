@@ -144,6 +144,7 @@ fn get_path(location: String) -> PathBuf {
     path.unwrap().to_owned()
 }
 
+// Definition and test for extract_location(). Used for pulling a Johnny Decimal ACID/DACID code. TODO: impl environment vars
 fn extract_location(path: &PathBuf) -> String {
     let path = path.to_owned();
     let folder = match path.file_name() {
@@ -169,8 +170,6 @@ fn main() {
         let arg = &args[2];
         println!("Finding path to {}...", arg);
         let _ = get_path(String::from(arg));
-    } else if args[1] == String::from("testbench") { // Test cases // TODO: Deprecate in favor of using actual Rust tests
-        //testbench();
     } else if args[1] == String::from("keys") { // Runs updated scan method
         scan_to_map();
     } else {
