@@ -86,9 +86,9 @@ impl JohnnyItem {
 fn scan_to_map() -> HashMap<String, PathBuf> {
     let mut map: HashMap<String, PathBuf> = HashMap::new();
     for location in WalkDir::new("C:/users/nateb/JohnnyDecimal").min_depth(3).max_depth(3) {
-        let loc_code = String::from("A12.34"); //UPDATE WHEN LOC CODE PARSER IS BUILT
         let item = location.unwrap();
         let filepath = item.into_path();
+        let loc_code = extract_location(&filepath);
         map.insert(loc_code, filepath);
         /*let printable = match map.get(loc_code).to_str() {
             Some(name) => name,
@@ -142,6 +142,22 @@ fn get_path(location: String) -> PathBuf {
     let map = scan_to_map();
     let path = map.get(&location);
     path.unwrap().to_owned()
+}
+
+fn extract_location(path: &PathBuf) -> String {
+    let path = path.to_owned();
+    let folder = match path.file_name() {
+        Some(foldername) => foldername,
+        None => panic!("Unable to read folder/location name (parsing folder name from full path")
+    };
+    println!("{:?}", &folder);
+    let folder = String::from(folder.to_string_lossy());
+    String::from(folder[0..6].to_owned())
+}
+#[test]
+fn extract_location_test() { // Test that extract_location() parses folder codes correctly
+    let path = PathBuf::from("C:/Users/nateb/JohnnyDecimal/M10-19_Programming/M11-Scripting_and_Automation/M11.03-johnnybgoode");
+    assert_eq!(extract_location(&path), "M11.03");
 }
 
 fn main() {
