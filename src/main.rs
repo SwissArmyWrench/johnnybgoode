@@ -1,7 +1,6 @@
 use std::{env, process::exit, collections::HashMap, path::PathBuf}; // Used to collect arguments from command line
 // use clap::{}; // Not currently implemented but will be used in future
 use walkdir::WalkDir; // Used to get the contents of folder
-use std::io; // Used to read and write files
 
 // Not currently in use, still learning how to use Clap.
 // #[derive(Parser)]
@@ -18,28 +17,10 @@ fn scan_to_map() -> HashMap<String, PathBuf> {
         let filepath = item.into_path();
         let loc_code = extract_location(&filepath);
         map.insert(loc_code, filepath);
-        /*let printable = match map.get(loc_code).to_str() {
-            Some(name) => name,
-            None => panic!("Error reading files")
-        };
-        println!("{}", printable); */
     } 
     map
 }
 
-// fn extract_code(item) -> String {
-
-// }
-
-// fn testbench() {
-//     let mut startingmember = JohnnyTreeMember::new_folder(String::from("test/subtest"));
-//     startingmember.new_child(JohnnyTreeMember::new_file(String::from("test/subtest/subsubtest")));
-//     let data = startingmember.get_path();
-//     let children = startingmember.get_children();
-//     println!("Startingmember path: {}", data);
-//     println!("Submember path: {}", children[0].get_path());
-
-// }
 
 fn get_path(location: String) -> PathBuf {
     let map = scan_to_map();
@@ -63,6 +44,7 @@ fn extract_location_test() { // Test that extract_location() parses folder codes
     let path = PathBuf::from("C:/Users/nateb/JohnnyDecimal/M10-19_Programming/M11-Scripting_and_Automation/M11.03-johnnybgoode");
     assert_eq!(extract_location(&path), "M11.03");
 }
+
 
 fn main() {
     let args: Vec<String> = env::args().collect();
