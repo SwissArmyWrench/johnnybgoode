@@ -1,50 +1,6 @@
-use std::{env, process::exit, collections::HashMap, path::PathBuf}; // Used to collect arguments from command line
-// use clap::{}; // Not currently implemented but will be used in future
-use walkdir::WalkDir; // Used to get the contents of folder
-
-// Not currently in use, still learning how to use Clap.
-// #[derive(Parser)]
-// struct CommandLine {
-//     commandname: String,
-//     path: std::path::PathBuf,
-// }
-
-
-fn scan_to_map() -> HashMap<String, PathBuf> {
-    let mut map: HashMap<String, PathBuf> = HashMap::new();
-    for location in WalkDir::new("C:/users/nateb/JohnnyDecimal").min_depth(3).max_depth(3) {
-        let item = location.unwrap();
-        let filepath = item.into_path();
-        let loc_code = extract_location(&filepath);
-        map.insert(loc_code, filepath);
-    } 
-    map
-}
-
-
-fn get_path(location: String) -> PathBuf {
-    let map = scan_to_map();
-    let path = map.get(&location);
-    path.unwrap().to_owned()
-}
-
-// Definition and test for extract_location(). Used for pulling a Johnny Decimal ACID/DACID code. TODO: impl environment vars
-fn extract_location(path: &PathBuf) -> String {
-    let path = path.to_owned();
-    let folder = match path.file_name() {
-        Some(foldername) => foldername,
-        None => panic!("Unable to read folder/location name (parsing folder name from full path")
-    };
-    // println!("{:?}", &folder); // Uncomment for verbosity for debugging
-    let folder = String::from(folder.to_string_lossy());
-    String::from(folder[0..6].to_owned())
-}
-#[test]
-fn extract_location_test() { // Test that extract_location() parses folder codes correctly
-    let path = PathBuf::from("C:/Users/nateb/JohnnyDecimal/M10-19_Programming/M11-Scripting_and_Automation/M11.03-johnnybgoode");
-    assert_eq!(extract_location(&path), "M11.03");
-}
-
+use johnnybgoode::{get_path, scan_to_map};
+use std::env;
+use std::process::exit;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
