@@ -1,19 +1,20 @@
 use std::{collections::HashMap, path::PathBuf}; // Used to collect arguments from command line
 use walkdir::WalkDir; // Used to get the contents of folder
 
-
+#[derive(Clone)]
 struct JohnnyFolder {
-    code: String,
+    path: PathBuf,
     name: String,
     level: JohnnyLevel,
     children: Vec<JohnnyFolder>
 }
 
+#[derive(Clone)]
 enum JohnnyLevel {
     Root,
-    Area,
-    Category,
-    Individual
+    Area(i32),
+    Category(i32),
+    Individual(String)
 }
 
 impl JohnnyFolder {
@@ -24,6 +25,7 @@ impl JohnnyFolder {
     fn get_children_owned(self) -> Vec<JohnnyFolder> {
         self.children
     }
+
 }
 
 pub fn scan_to_map() -> HashMap<String, PathBuf> { // Builds and returns HashMap of location codes to paths
@@ -75,23 +77,80 @@ fn extract_name_test() {
     assert_eq!(extract_name(&path), "M11.03-johnnybgoode");
 }
 
-fn build_tree(map: &HashMap<String, PathBuf>) /* -> JohnnyFolder */ {
+/*fn extract_area(code: &String) -> i32 {
+    code.iter
+    i32::from(str::from(code[1]))
+}
+
+fn extract_cat(code: &String) -> i32 {
+    i32::from(code[2]) 
+}
+*/
+fn build_tree(map: &HashMap<String, PathBuf>) -> JohnnyFolder {
     // let map = scan_to_map();
 
     // build Vec of all individual JohnnyFolders (bottom level, ID of ACID/DACID)
     let mut individuals: Vec<JohnnyFolder> = Vec::new();
     let paths = map.values();
     for path in paths {
-        let new = JohnnyFolder {code: extract_location(path), 
-                            name: extract_name(&path), 
-                            level: JohnnyLevel::Individual, 
-                            children: Vec::new() };
+        let new = JohnnyFolder {
+            path: path.to_owned(),
+            level: JohnnyLevel::Individual(extract_location(path)), 
+            name: extract_name(&path), 
+            children: Vec::new() };
         individuals.push(new);
     }
 
-    let mut categories: Vec<JohnnyFolder> = Vec::new();
-    for id in individuals {
-        let added = false; // Flag to know if an ID gets filed to a category, or if a new one must be created
-        
+    let mut categories: Vec<JohnnyFolder> = Vec::new(); // inits vec of categories
+    for k in 0..individuals.len() { // iterates over all the individuals
+        let mut added = false; // Flag to know if an ID gets filed to a category, or if a new one must be created
+        for i in 0..categories.len() { // Loops over the categories looking for the correct one for current individual
+            if categories[i].path == individuals[k].path.parent().unwrap() { // if correct is found, insert a clone of the individual
+                categories[i].children.push(individuals[k].clone());
+                added = true; // set added flag
+            }
+        }
+
+        if !added { // if no current cat is found, create it
+            categories.push(JohnnyFolder {
+                path: individuals[k].path.parent().unwrap().to_owned(),
+                name: extract_name(&individuals[k].path.parent().unwrap().to_owned()),
+                level: JohnnyLevel::Category(2), // TODO: Extract this number
+                children: Vec::from([individuals[k].clone()])
+            
+            })
+        }
     }
+    // at this point in the code all of the individuals have been sorted away into the appropriate categories
+    let mut areas: Vec<JohnnyFolder> = Vec::new(); // init vec of areas
+    for k in 0..categories.len() {
+        let mut added = false;
+        for i in 0..areas.len() {
+            if areas[i].path == categories[k].path.parent().unwrap() {
+                areas[i].children.push(categories[k].clone());
+                added = true; // set added flag
+            }
+        }
+        
+        if !added {
+            areas.push(JohnnyFolder {
+                path: categories[k].path.parent().unwrap().to_owned(),
+                name: extract_name(&categories[k].path.parent().unwrap().to_owned()),
+                level: JohnnyLevel::Area(3), // TODO: Derive this number
+                children: vec!(categories[k].clone())
+            })
+        }
+    }
+    
+    let root = JohnnyFolder {
+        path: areas[0].path.parent().unwrap().to_owned(),
+        name: String::from("Johnny Decimal Root Folder"),
+        level: JohnnyLevel::Root,
+        children: areas
+    };
+    root
+}
+
+pub fn export(filepath: PathBuf) {
+
 }
