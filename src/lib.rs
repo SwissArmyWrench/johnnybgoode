@@ -1,6 +1,22 @@
 use std::{collections::HashMap, path::PathBuf}; // Used to collect arguments from command line
 use walkdir::WalkDir; // Used to get the contents of folder
 
+struct JohnnyTree {
+    name: String,
+    children: Vec<JohnnyFolder>
+}
+
+struct JohnnyFolder {
+    code: String,
+    level: JohnnyLevel,
+    children: Vec<JohnnyFolder>
+}
+
+enum JohnnyLevel {
+    Area,
+    Category,
+    Individual
+}
 
 pub fn scan_to_map() -> HashMap<String, PathBuf> { // Builds and returns HashMap of location codes to paths
     let mut map: HashMap<String, PathBuf> = HashMap::new(); // Inits HashMap to keep key:path pairs in
