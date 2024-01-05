@@ -10,8 +10,10 @@ fn main() {
         println!("{}", get_path(String::from(arg)).display());
     } else if args[1] == String::from("scan") { // Runs updated scan method
         scan_to_map();
+    } else if args[1] == String::from("build") {
+        johnnybgoode::build_tree(&scan_to_map());
     } else {
-        println!("Unknown command. Please try again.");
+        println!("Unknown command {}. Please try again.", args[1]);
         exit(1);
     }
     

@@ -2,19 +2,11 @@ use std::{collections::HashMap, path::PathBuf}; // Used to collect arguments fro
 use walkdir::WalkDir; // Used to get the contents of folder
 
 #[derive(Clone)]
-struct JohnnyFolder {
+pub struct JohnnyFolder {
     path: PathBuf,
     name: String,
     level: JohnnyLevel,
     children: Vec<JohnnyFolder>
-}
-
-#[derive(Clone)]
-enum JohnnyLevel {
-    Root,
-    Area(i32),
-    Category(i32),
-    Individual(String)
 }
 
 impl JohnnyFolder {
@@ -26,6 +18,34 @@ impl JohnnyFolder {
         self.children
     }
 
+}
+
+#[derive(Clone)]
+pub enum JohnnyLevel {
+    Root,
+    Area(i32),
+    Category(i32),
+    Individual(String)
+}
+
+impl JohnnyLevel {
+    fn get_cat_number(&self) -> i32 {
+        match self {
+            JohnnyLevel::Root => unreachable!("get_cat_number() cannot be called on JohnnyLevel::Root"),
+            JohnnyLevel::Area(_) => unreachable!("get_cat_number() cannot be called on JohnnyLevel::Area"),
+            JohnnyLevel::Category(num) => num.to_owned(),
+            JohnnyLevel::Individual(code) => extract_cat(code)
+        }
+    }
+
+    fn get_area_number(&self) -> i32 {
+        match self {
+            JohnnyLevel::Root => unreachable!("get_area_number() cannot be called on JohnnyLevel::Root"),
+            JohnnyLevel::Area(num) => num.to_owned(),
+            JohnnyLevel::Category(num) => extract_area(num.to_owned()),
+            JohnnyLevel::Individual(code) => extract_area(extract_cat(code))
+        }
+    }
 }
 
 pub fn scan_to_map() -> HashMap<String, PathBuf> { // Builds and returns HashMap of location codes to paths
@@ -46,7 +66,7 @@ pub fn get_path(location: String) -> PathBuf { // Finds path for given location 
     path.unwrap().to_owned() // Unwraps the Option and turns it to a PathBuf, not a reference to one.
 }
 
-
+// Stable UNLESS improperly sorted file exists in a Root, Area, or Category folder. TODO: Implement some behavior for this.
 fn extract_location(path: &PathBuf) -> String { // Derives location code from full path
     let path = path.to_owned(); // Created owned copy of reference
     let folder = match path.file_name() { // Unwraps the Option
@@ -63,7 +83,7 @@ fn extract_location_test() { // Test that extract_location() parses folder codes
     assert_eq!(extract_location(&path), "M11.03");
 }
 
-fn extract_name(path: &PathBuf) -> String {
+fn extract_name(path: &PathBuf) -> String { // Stable
     let name = match path.file_name() {
         Some(name) => name,
         None => panic!("Unable to read folder/location name (parsing folder name from full path)")
@@ -72,21 +92,35 @@ fn extract_name(path: &PathBuf) -> String {
     name
 }
 #[test]
-fn extract_name_test() {
+fn extract_name_test() { // Stable
     let path = PathBuf::from("C:/Users/nateb/JohnnyDecimal/M10-19_Programming/M11-Scripting_and_Automation/M11.03-johnnybgoode");
     assert_eq!(extract_name(&path), "M11.03-johnnybgoode");
 }
 
-/*fn extract_area(code: &String) -> i32 {
-    code.iter
-    i32::from(str::from(code[1]))
+fn extract_area(catnumber: i32) -> i32 {
+    (catnumber - catnumber % 10)/10
 }
 
 fn extract_cat(code: &String) -> i32 {
-    i32::from(code[2]) 
+    // let code = code.chars().collect();
+    let code: &str = code;
+    let digit = &code[1..2];
+    let digit_integer = match str::parse::<i32>(digit) {
+        Ok(number) => number,
+        Err(error) => panic!("Couldn't pull digit from location code \"{1}\": {0}", error, code)
+    };
+    // println!("{:?}", digit); // Uncomment for added verbosity
+    digit_integer
 }
-*/
-fn build_tree(map: &HashMap<String, PathBuf>) -> JohnnyFolder {
+
+#[test]
+fn extract_cat_test() {
+    let code = String::from("M11.03");
+    assert_eq!(extract_cat(&code), i32::from(11));
+}
+
+
+pub fn build_tree(map: &HashMap<String, PathBuf>) -> JohnnyFolder {
     // let map = scan_to_map();
 
     // build Vec of all individual JohnnyFolders (bottom level, ID of ACID/DACID)
@@ -113,9 +147,9 @@ fn build_tree(map: &HashMap<String, PathBuf>) -> JohnnyFolder {
 
         if !added { // if no current cat is found, create it
             categories.push(JohnnyFolder {
-                path: individuals[k].path.parent().unwrap().to_owned(),
-                name: extract_name(&individuals[k].path.parent().unwrap().to_owned()),
-                level: JohnnyLevel::Category(2), // TODO: Extract this number
+                path: individuals[k].path.parent().unwrap().to_owned(), // path to cat folder based on id folder's path
+                name: extract_name(&individuals[k].path.parent().unwrap().to_owned()), // extracts folder name based on path
+                level: JohnnyLevel::Category(individuals[k].level.get_cat_number()), // needs (String, i32) to preserve origin 
                 children: Vec::from([individuals[k].clone()])
             
             })
@@ -136,7 +170,7 @@ fn build_tree(map: &HashMap<String, PathBuf>) -> JohnnyFolder {
             areas.push(JohnnyFolder {
                 path: categories[k].path.parent().unwrap().to_owned(),
                 name: extract_name(&categories[k].path.parent().unwrap().to_owned()),
-                level: JohnnyLevel::Area(3), // TODO: Derive this number
+                level: JohnnyLevel::Area(categories[k].level.get_area_number()), // TODO: Derive this number
                 children: vec!(categories[k].clone())
             })
         }
