@@ -76,7 +76,7 @@ impl JohnnyLevel {
             JohnnyLevel::Category(num) => *num,
             JohnnyLevel::Individual(loc_code) => {
                 let sliceable: &str = &loc_code;
-                let key = &sliceable[4..5];
+                let key = &sliceable[4..6];
                 str::parse::<i32>(&key).expect("Unable to find a number")
             } // returns ID from DAC.ID
         }
