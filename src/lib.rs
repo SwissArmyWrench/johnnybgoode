@@ -1,7 +1,7 @@
-use std::{collections::HashMap, path::PathBuf}; // Used to collect arguments from command line
+use std::{collections::HashMap, path::PathBuf, cmp::Ordering}; // Used to collect arguments from command line
 use walkdir::WalkDir; // Used to get the contents of folder
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct JohnnyFolder {
     path: PathBuf,
     name: String,
@@ -18,9 +18,31 @@ impl JohnnyFolder {
         self.children
     }
 
+
 }
 
-#[derive(Clone)]
+impl Ord for JohnnyFolder {
+    fn cmp(&self, other:  &Self) -> Ordering {
+        let (selfkey, otherkey) = (self.level.get_sorting_key(), other.level.get_sorting_key());
+        if selfkey < otherkey {
+            return Ordering::Less
+        } else if selfkey == otherkey {
+            return Ordering::Equal
+        } else if selfkey > otherkey {
+            return Ordering::Greater
+        } else {
+            Ordering::Equal
+        }
+    }   
+}
+
+impl PartialOrd for JohnnyFolder {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let (selfkey, otherkey) = (self.level.get_sorting_key(), other.level.get_sorting_key());
+        Some(selfkey.cmp(&otherkey))
+    }
+}
+#[derive(Clone, PartialEq, Eq)]
 pub enum JohnnyLevel {
     Root,
     Area(i32),
@@ -46,6 +68,21 @@ impl JohnnyLevel {
             JohnnyLevel::Individual(code) => extract_area(extract_cat(code))
         }
     }
+
+    fn get_sorting_key(&self) -> i32 {
+        match self {
+            JohnnyLevel::Root => unreachable!("Cannot sort Root folders"),
+            JohnnyLevel::Area(num) => *num,
+            JohnnyLevel::Category(num) => *num,
+            JohnnyLevel::Individual(loc_code) => {
+                let sliceable: &str = &loc_code;
+                let key = &sliceable[4..5];
+                str::parse::<i32>(&key).expect("Unable to find a number")
+            } // returns ID from DAC.ID
+        }
+    }
+
+
 }
 
 pub fn scan_to_map() -> HashMap<String, PathBuf> { // Builds and returns HashMap of location codes to paths
