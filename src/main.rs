@@ -12,6 +12,8 @@ fn main() {
         scan_to_map();
     } else if args[1] == String::from("build") {
         johnnybgoode::build_tree(&scan_to_map());
+    } else if args[1] == String::from("export") {
+        johnnybgoode::export(johnnybgoode::build_tree(&johnnybgoode::scan_to_map()), std::path::PathBuf::from(args[2].to_owned()))
     } else {
         println!("Unknown command {}. Please try again.", args[1]);
         exit(1);

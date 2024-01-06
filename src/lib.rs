@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::PathBuf, cmp::Ordering}; // Used to collect arguments from command line
+use std::{collections::HashMap, path::PathBuf, cmp::Ordering, fs::File, io::Write, fmt::write}; // Used to collect arguments from command line
 use walkdir::WalkDir; // Used to get the contents of folder
 
 #[derive(Clone, PartialEq, Eq)]
@@ -141,7 +141,7 @@ fn extract_area(catnumber: i32) -> i32 {
 fn extract_cat(code: &String) -> i32 {
     // let code = code.chars().collect();
     let code: &str = code;
-    let digit = &code[1..2];
+    let digit = &code[1..3];
     let digit_integer = match str::parse::<i32>(digit) {
         Ok(number) => number,
         Err(error) => panic!("Couldn't pull digit from location code \"{1}\": {0}", error, code)
@@ -222,6 +222,29 @@ pub fn build_tree(map: &HashMap<String, PathBuf>) -> JohnnyFolder {
     root
 }
 
-pub fn export(filepath: PathBuf) {
+pub fn export(root: JohnnyFolder, filepath: PathBuf) {
+    let mut markdown = File::create(filepath).unwrap();
+    write!(markdown, "# Root\n").expect("Unable to write to markdown file");
 
+    let mut areas = root.get_children_owned();
+    areas.sort();
+    for k in 0..areas.len() { // looping over AREAS
+        let area = &mut areas[k];
+        writeln!(markdown, "## Area {0} - {1}\n", area.level.get_area_number(), area.name).expect("Unable to write to markdown file");
+        area.children.sort();
+        
+        let mut cats = area.clone().get_children_owned();
+        for i in 0..area.children.len() { // looping over CATEGORIES
+            let cat = &mut cats[i];
+            writeln!(markdown, "### Category {0} - {1}\n", cat.level.get_cat_number(), cat.name).expect("Unable to write to markdown file");
+            cat.children.sort();
+            
+            let mut ids = cat.clone().get_children_owned();
+            for j in 0..cat.children.len() {
+                let id = &mut ids[j];
+                writeln!(markdown, "**{}**\n", id.name).expect("Unable to write to markdown file");
+            }
+
+        }
+    }
 }
