@@ -12,7 +12,7 @@ This file contains a summary of what is yet to be done when looking forward to t
 - [ ] Write and test shell scripts for `johnny jump` on PowerShell, Bash, and Mac
 - [x] Build cloneable / copyable dummy JohnnyDecimal setup for testing
 - [ ] Integrate env variables for Johnny Decimal top level path
-- [ ] Integrate customization YAML file
+- [x] Integrate customization YAML file
 
 ### How this file works
 
