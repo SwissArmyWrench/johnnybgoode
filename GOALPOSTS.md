@@ -1,6 +1,6 @@
 # Goalposts for next release
 
-This file contains a summary of what is yet to be done when looking forward to the upcoming release. 
+This file contains a summary of what is yet to be done when looking forward to the upcoming release.
 
 ## Release Goals for Version 1.0.0
 

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::PathBuf, cmp::Ordering, fs::File, io::Write, fmt::write}; // Used to collect arguments from command line
+use std::{cmp::Ordering, collections::HashMap, fmt::write, fs::File, io::Write, path::PathBuf}; // Used to collect arguments from command line
 use walkdir::WalkDir; // Used to get the contents of folder
 
 #[derive(Clone, PartialEq, Eq)]
@@ -6,7 +6,7 @@ pub struct JohnnyFolder {
     path: PathBuf,
     name: String,
     level: JohnnyLevel,
-    children: Vec<JohnnyFolder>
+    children: Vec<JohnnyFolder>,
 }
 
 impl JohnnyFolder {
@@ -17,23 +17,17 @@ impl JohnnyFolder {
     fn get_children_owned(self) -> Vec<JohnnyFolder> {
         self.children
     }
-
-
 }
 
 impl Ord for JohnnyFolder {
-    fn cmp(&self, other:  &Self) -> Ordering {
+    fn cmp(&self, other: &Self) -> Ordering {
         let (selfkey, otherkey) = (self.level.get_sorting_key(), other.level.get_sorting_key());
-        if selfkey < otherkey {
-            return Ordering::Less
-        } else if selfkey == otherkey {
-            return Ordering::Equal
-        } else if selfkey > otherkey {
-            return Ordering::Greater
-        } else {
-            Ordering::Equal
+        match selfkey.cmp(&otherkey) {
+            Ordering::Equal => Ordering::Equal,
+            Ordering::Greater => Ordering::Greater,
+            Ordering::Less => Ordering::Less,
         }
-    }   
+    }
 }
 
 impl PartialOrd for JohnnyFolder {
@@ -47,25 +41,31 @@ pub enum JohnnyLevel {
     Root,
     Area(i32),
     Category(i32),
-    Individual(String)
+    Individual(String),
 }
 
 impl JohnnyLevel {
     fn get_cat_number(&self) -> i32 {
         match self {
-            JohnnyLevel::Root => unreachable!("get_cat_number() cannot be called on JohnnyLevel::Root"),
-            JohnnyLevel::Area(_) => unreachable!("get_cat_number() cannot be called on JohnnyLevel::Area"),
+            JohnnyLevel::Root => {
+                unreachable!("get_cat_number() cannot be called on JohnnyLevel::Root")
+            }
+            JohnnyLevel::Area(_) => {
+                unreachable!("get_cat_number() cannot be called on JohnnyLevel::Area")
+            }
             JohnnyLevel::Category(num) => num.to_owned(),
-            JohnnyLevel::Individual(code) => extract_cat(code)
+            JohnnyLevel::Individual(code) => extract_cat(code),
         }
     }
 
     fn get_area_number(&self) -> i32 {
         match self {
-            JohnnyLevel::Root => unreachable!("get_area_number() cannot be called on JohnnyLevel::Root"),
+            JohnnyLevel::Root => {
+                unreachable!("get_area_number() cannot be called on JohnnyLevel::Root")
+            }
             JohnnyLevel::Area(num) => num.to_owned(),
             JohnnyLevel::Category(num) => extract_area(num.to_owned()),
-            JohnnyLevel::Individual(code) => extract_area(extract_cat(code))
+            JohnnyLevel::Individual(code) => extract_area(extract_cat(code)),
         }
     }
 
@@ -75,87 +75,96 @@ impl JohnnyLevel {
             JohnnyLevel::Area(num) => *num,
             JohnnyLevel::Category(num) => *num,
             JohnnyLevel::Individual(loc_code) => {
-                let sliceable: &str = &loc_code;
+                let sliceable: &str = loc_code;
                 let key = &sliceable[4..6];
-                str::parse::<i32>(&key).expect("Unable to find a number")
+                str::parse::<i32>(key).expect("Unable to find a number")
             } // returns ID from DAC.ID
         }
     }
-
-
 }
 
-pub fn scan_to_map() -> HashMap<String, PathBuf> { // Builds and returns HashMap of location codes to paths
+pub fn scan_to_map() -> HashMap<String, PathBuf> {
+    // Builds and returns HashMap of location codes to paths
     let mut map: HashMap<String, PathBuf> = HashMap::new(); // Inits HashMap to keep key:path pairs in
-    for location in WalkDir::new("C:/users/nateb/JohnnyDecimal").min_depth(3).max_depth(3) { // Walks directories to scan contents
+    for location in WalkDir::new("C:/users/nateb/JohnnyDecimal")
+        .min_depth(3)
+        .max_depth(3)
+    {
+        // Walks directories to scan contents
         let item = location.unwrap(); // Semi unsafe, unwrapping Result<T, E> without error handling
         let filepath = item.into_path(); // Turns the item into an owned PathBuf
         let loc_code = extract_location(&filepath); // Uses a reference to that path to extract the location code
         map.insert(loc_code, filepath); // Inserts key and path into the HashMap
-    } 
+    }
     map // Returns the HashMap
 }
 
-
-pub fn get_path(location: String) -> PathBuf { // Finds path for given location code
+pub fn get_path(location: String) -> PathBuf {
+    // Finds path for given location code
     let map = scan_to_map(); // Scans the filesystem and builds map
     let path = map.get(&location); // Extracts the given location from the database // TODO: Build handler for None value
     path.unwrap().to_owned() // Unwraps the Option and turns it to a PathBuf, not a reference to one.
 }
 
 // Stable UNLESS improperly sorted file exists in a Root, Area, or Category folder. TODO: Implement some behavior for this.
-fn extract_location(path: &PathBuf) -> String { // Derives location code from full path
+fn extract_location(path: &PathBuf) -> String {
+    // Derives location code from full path
     let path = path.to_owned(); // Created owned copy of reference
-    let folder = match path.file_name() { // Unwraps the Option
+    let folder = match path.file_name() {
+        // Unwraps the Option
         Some(foldername) => foldername,
-        None => panic!("Unable to read folder/location name (parsing folder code from full path")
+        None => panic!("Unable to read folder/location name (parsing folder code from full path"),
     };
     // println!("{:?}", &folder); // Uncomment for verbosity for debugging
     let folder = String::from(folder.to_string_lossy()); //Roundabout way of OsStr -> String conversion
-    String::from(folder[0..6].to_owned()) //Returns first six characters of folder path // TODO: adjust with environment variables
+    folder[0..6].to_owned() //Returns first six characters of folder path // TODO: adjust with environment variables
 }
 #[test]
-fn extract_location_test() { // Test that extract_location() parses folder codes correctly
+fn extract_location_test() {
+    // Test that extract_location() parses folder codes correctly
     let path = PathBuf::from("C:/Users/nateb/JohnnyDecimal/M10-19_Programming/M11-Scripting_and_Automation/M11.03-johnnybgoode");
     assert_eq!(extract_location(&path), "M11.03");
 }
 
-fn extract_name(path: &PathBuf) -> String { // Stable
+fn extract_name(path: &PathBuf) -> String {
+    // Stable
     let name = match path.file_name() {
         Some(name) => name,
-        None => panic!("Unable to read folder/location name (parsing folder name from full path)")
+        None => panic!("Unable to read folder/location name (parsing folder name from full path)"),
     };
     let name = String::from(name.to_string_lossy());
     name
 }
 #[test]
-fn extract_name_test() { // Stable
+fn extract_name_test() {
+    // Stable
     let path = PathBuf::from("C:/Users/nateb/JohnnyDecimal/M10-19_Programming/M11-Scripting_and_Automation/M11.03-johnnybgoode");
     assert_eq!(extract_name(&path), "M11.03-johnnybgoode");
 }
 
 fn extract_area(catnumber: i32) -> i32 {
-    (catnumber - catnumber % 10)/10
+    (catnumber - catnumber % 10) / 10
 }
 
 fn extract_cat(code: &String) -> i32 {
     // let code = code.chars().collect();
     let code: &str = code;
     let digit = &code[1..3];
-    let digit_integer = match str::parse::<i32>(digit) {
+    match str::parse::<i32>(digit) {
         Ok(number) => number,
-        Err(error) => panic!("Couldn't pull digit from location code \"{1}\": {0}", error, code)
-    };
+        Err(error) => panic!(
+            "Couldn't pull digit from location code \"{1}\": {0}",
+            error, code
+        ),
+    }
     // println!("{:?}", digit); // Uncomment for added verbosity
-    digit_integer
 }
 
 #[test]
 fn extract_cat_test() {
     let code = String::from("M11.03");
-    assert_eq!(extract_cat(&code), i32::from(11));
+    assert_eq!(extract_cat(&code), 11);
 }
-
 
 pub fn build_tree(map: &HashMap<String, PathBuf>) -> JohnnyFolder {
     // let map = scan_to_map();
@@ -166,29 +175,33 @@ pub fn build_tree(map: &HashMap<String, PathBuf>) -> JohnnyFolder {
     for path in paths {
         let new = JohnnyFolder {
             path: path.to_owned(),
-            level: JohnnyLevel::Individual(extract_location(path)), 
-            name: extract_name(&path), 
-            children: Vec::new() };
+            level: JohnnyLevel::Individual(extract_location(path)),
+            name: extract_name(path),
+            children: Vec::new(),
+        };
         individuals.push(new);
     }
 
     let mut categories: Vec<JohnnyFolder> = Vec::new(); // inits vec of categories
-    for k in 0..individuals.len() { // iterates over all the individuals
+    for k in 0..individuals.len() {
+        // iterates over all the individuals
         let mut added = false; // Flag to know if an ID gets filed to a category, or if a new one must be created
-        for i in 0..categories.len() { // Loops over the categories looking for the correct one for current individual
-            if categories[i].path == individuals[k].path.parent().unwrap() { // if correct is found, insert a clone of the individual
+        for i in 0..categories.len() {
+            // Loops over the categories looking for the correct one for current individual
+            if categories[i].path == individuals[k].path.parent().unwrap() {
+                // if correct is found, insert a clone of the individual
                 categories[i].children.push(individuals[k].clone());
                 added = true; // set added flag
             }
         }
 
-        if !added { // if no current cat is found, create it
+        if !added {
+            // if no current cat is found, create it
             categories.push(JohnnyFolder {
                 path: individuals[k].path.parent().unwrap().to_owned(), // path to cat folder based on id folder's path
                 name: extract_name(&individuals[k].path.parent().unwrap().to_owned()), // extracts folder name based on path
-                level: JohnnyLevel::Category(individuals[k].level.get_cat_number()), // needs (String, i32) to preserve origin 
-                children: Vec::from([individuals[k].clone()])
-            
+                level: JohnnyLevel::Category(individuals[k].level.get_cat_number()), // needs (String, i32) to preserve origin
+                children: Vec::from([individuals[k].clone()]),
             })
         }
     }
@@ -202,49 +215,62 @@ pub fn build_tree(map: &HashMap<String, PathBuf>) -> JohnnyFolder {
                 added = true; // set added flag
             }
         }
-        
+
         if !added {
             areas.push(JohnnyFolder {
                 path: categories[k].path.parent().unwrap().to_owned(),
                 name: extract_name(&categories[k].path.parent().unwrap().to_owned()),
                 level: JohnnyLevel::Area(categories[k].level.get_area_number()), // TODO: Derive this number
-                children: vec!(categories[k].clone())
+                children: vec![categories[k].clone()],
             })
         }
     }
-    
+
     let root = JohnnyFolder {
         path: areas[0].path.parent().unwrap().to_owned(),
         name: String::from("Johnny Decimal Root Folder"),
         level: JohnnyLevel::Root,
-        children: areas
+        children: areas,
     };
     root
 }
 
 pub fn export(root: JohnnyFolder, filepath: PathBuf) {
     let mut markdown = File::create(filepath).unwrap();
-    write!(markdown, "# Root\n").expect("Unable to write to markdown file");
+    writeln!(markdown, "# Root\n").expect("Unable to write to markdown file");
 
     let mut areas = root.get_children_owned();
     areas.sort();
-    for k in 0..areas.len() { // looping over AREAS
+    for k in 0..areas.len() {
+        // looping over AREAS
         let area = &mut areas[k];
-        writeln!(markdown, "## Area {0} - {1}\n", area.level.get_area_number(), area.name).expect("Unable to write to markdown file");
+        writeln!(
+            markdown,
+            "## Area {0} - {1}\n",
+            area.level.get_area_number(),
+            area.name
+        )
+        .expect("Unable to write to markdown file");
         area.children.sort();
-        
+
         let mut cats = area.clone().get_children_owned();
-        for i in 0..area.children.len() { // looping over CATEGORIES
+        for i in 0..area.children.len() {
+            // looping over CATEGORIES
             let cat = &mut cats[i];
-            writeln!(markdown, "### Category {0} - {1}\n", cat.level.get_cat_number(), cat.name).expect("Unable to write to markdown file");
+            writeln!(
+                markdown,
+                "### Category {0} - {1}\n",
+                cat.level.get_cat_number(),
+                cat.name
+            )
+            .expect("Unable to write to markdown file");
             cat.children.sort();
-            
+
             let mut ids = cat.clone().get_children_owned();
             for j in 0..cat.children.len() {
                 let id = &mut ids[j];
                 writeln!(markdown, "**{}**\n", id.name).expect("Unable to write to markdown file");
             }
-
         }
     }
 }
