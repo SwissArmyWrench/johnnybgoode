@@ -2,6 +2,8 @@
 
 An assistant for users of the [Johnny Decimal](https://johnnydecimal.com) file organization system.
 
+Learn to [use](https://github.com/SwissArmyWrench/johnnybgoode/blob/main/docs/USER_MANUAL.md) or [deploy](https://github.com/SwissArmyWrench/johnnybgoode/blob/main/docs/DEPLOYMENT.md) `johnnybgoode`.
+
 ## Johnnybgoode's features
 
 - Scan your JohnnyDecimal structure and match folder locations to JohnnyDecimal location codes
