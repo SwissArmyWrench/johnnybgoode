@@ -6,7 +6,7 @@ This file contains a summary of what is yet to be done when looking forward to t
 
 - [ ] Create contribution guidelines
 - [ ] Create deployment system and guidelines
-- [ ] Create usage docs
+- [x] Create usage docs
 - [ ] Build in customizability for file/folder name parsing
 - [ ] Test on major platforms and shells
 - [ ] Write and test shell scripts for `johnny jump` on PowerShell, Bash, and Mac
