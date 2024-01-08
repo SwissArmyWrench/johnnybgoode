@@ -1,7 +1,16 @@
+use serde::{Deserialize, Serialize};
+use serde_yaml::{self};
 use std::{cmp::Ordering, collections::HashMap, fmt::write, fs::File, io::Write, path::PathBuf}; // Used to collect arguments from command line
 use walkdir::WalkDir; // Used to get the contents of folder
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Config {
+    pub johnnydecimal_home: PathBuf,
+    name_scheme: String,
+}
+
 #[derive(Clone, PartialEq, Eq)]
+
 pub struct JohnnyFolder {
     path: PathBuf,
     name: String,
@@ -83,13 +92,10 @@ impl JohnnyLevel {
     }
 }
 
-pub fn scan_to_map() -> HashMap<String, PathBuf> {
+pub fn scan_to_map(toplevel_path: &PathBuf) -> HashMap<String, PathBuf> {
     // Builds and returns HashMap of location codes to paths
     let mut map: HashMap<String, PathBuf> = HashMap::new(); // Inits HashMap to keep key:path pairs in
-    for location in WalkDir::new("C:/users/nateb/JohnnyDecimal")
-        .min_depth(3)
-        .max_depth(3)
-    {
+    for location in WalkDir::new(toplevel_path).min_depth(3).max_depth(3) {
         // Walks directories to scan contents
         let item = location.unwrap(); // Semi unsafe, unwrapping Result<T, E> without error handling
         let filepath = item.into_path(); // Turns the item into an owned PathBuf
@@ -99,9 +105,9 @@ pub fn scan_to_map() -> HashMap<String, PathBuf> {
     map // Returns the HashMap
 }
 
-pub fn get_path(location: String) -> PathBuf {
+pub fn get_path(config: Config, location: String) -> PathBuf {
     // Finds path for given location code
-    let map = scan_to_map(); // Scans the filesystem and builds map
+    let map = scan_to_map(&config.johnnydecimal_home); // Scans the filesystem and builds map
     let path = map.get(&location); // Extracts the given location from the database // TODO: Build handler for None value
     path.unwrap().to_owned() // Unwraps the Option and turns it to a PathBuf, not a reference to one.
 }
