@@ -1,18 +1,16 @@
 use johnnybgoode::{get_path, scan_to_map, Config};
-use serde_yaml::{self};
 use std::env;
-use std::fs;
+use std::path::PathBuf;
 use std::process::exit;
 
 fn main() {
-    let file = fs::File::open(
-        r"C:\Users\nateb\JohnnyDecimal\M10-19_Programming\M11-Scripting_and_Automation\M11.03-johnnybgoode\johnnybgoode\config.yaml",
-    ).expect("Unable to open YAML file");
-    let config: Config = serde_yaml::from_reader(file).expect("Error reading YAML");
+    let args: Vec<String> = env::args().collect(); // Immediately collect arguments for usage
 
-    let args: Vec<String> = env::args().collect();
+    let config = Config {johnnydecimal_home: PathBuf::from("C:/Users/nateb/JohnnyDecimal/M10-19_Programming/M11-Scripting_and_Automation/M11.03-johnnybgoode/johnnybgoode/sandbox/config.yaml"),
+                    name_scheme: String::from("DACID")};
+
     if args.len() == 1 {
-        eprintln!("Please supply argument(s)")
+        eprintln!("johnnybgoode: Please supply argument(s)")
     } else if args[1] == "path" {
         // Returns a path to a given location code
         let arg = &args[2];

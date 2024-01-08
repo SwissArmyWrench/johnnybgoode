@@ -6,7 +6,7 @@ use walkdir::WalkDir; // Used to get the contents of folder
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     pub johnnydecimal_home: PathBuf,
-    name_scheme: String,
+    pub name_scheme: String,
 }
 
 #[derive(Clone, PartialEq, Eq)]
