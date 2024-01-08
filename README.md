@@ -8,7 +8,7 @@ An assistant for users of the [Johnny Decimal](https://johnnydecimal.com) file o
 - Return a path to a folder just from its location code
 - With a bit of terminal scripting, create a custom version of `cd` that navigates purely from the location code
 
-## Long Term Roadmap (see the goals for next release [here](https://github.com/SwissArmyWrench/johnnybgoode/blob/main/GOALPOSTS.md))
+## Long Term Roadmap (see the goals for next release [here](https://github.com/SwissArmyWrench/johnnybgoode/blob/main/docs/GOALPOSTS.md))
 
 - Implement use of environment variables
 - Build streamlined deployment process
