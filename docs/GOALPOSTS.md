@@ -7,7 +7,7 @@ This file contains a summary of what is yet to be done when looking forward to t
 - [x] Create contribution guidelines
 - [x] Create deployment system and guidelines
 - [x] Create usage docs
-- [ ] Build in customizability for file/folder name parsing
+- [x] Build in customizability for file/folder name parsing
 - [ ] Test on major platforms and shells
 - [ ] Write and test shell scripts for `johnny jump` on PowerShell, Bash, and Mac
 - [x] Build cloneable / copyable dummy JohnnyDecimal setup for testing
@@ -23,6 +23,7 @@ This file contains a summary of what is yet to be done when looking forward to t
 - warnings for out-of-place files or folders
 - checking/enforcing of per-folder name schemes
 - Use environment variables for non-default config file location
+- Help text under `johnny help`
 
 ### How this file works
 
