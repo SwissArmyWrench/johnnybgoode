@@ -1,12 +1,70 @@
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
-use std::{cmp::Ordering, collections::HashMap, fmt::write, fs::File, io::Write, path::PathBuf}; // Used to collect arguments from command line
+use std::{cmp::Ordering, collections::HashMap, fs::File, io::Write, path::PathBuf}; // Used to collect arguments from command line
 use walkdir::WalkDir; // Used to get the contents of folder
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     pub johnnydecimal_home: PathBuf,
     pub name_scheme: String,
+}
+
+pub struct Command {
+    intent: Subcommand,
+    config: Config,
+}
+
+impl Command {
+    // Parses out a command line command and arguments into a Command struct instance
+    pub fn new(arguments_vec: Vec<String>, config: Config) -> Command {
+        let parsed_arg: Subcommand;
+        if arguments_vec.len() == 1 {
+            parsed_arg = Subcommand::NoCommand;
+        } else if arguments_vec[1] == "path" {
+            parsed_arg = Subcommand::GetPath(arguments_vec[2].clone());
+        } else if arguments_vec[1] == "export" {
+            parsed_arg = Subcommand::ExportMd(PathBuf::from(arguments_vec[2].clone()));
+        } else {
+            parsed_arg = Subcommand::NonValid(
+                format!(
+                    "johnnybgoode: \"{}\" is not a recognized command",
+                    arguments_vec[1]
+                )
+                .to_owned(),
+            );
+        }
+
+        Command {
+            intent: parsed_arg,
+            config,
+        }
+    }
+
+    pub fn run(command: Command) {
+        match command.intent {
+            Subcommand::NonValid(msg) => {
+                eprintln!("{}", msg);
+            }
+            Subcommand::GetPath(code) => {
+                println!("{}", get_path(command.config, code).to_string_lossy());
+            }
+            Subcommand::ExportMd(path) => {
+                let map = scan_to_map(&command.config.johnnydecimal_home);
+                let treetop = build_tree(&map);
+                export(treetop, path);
+            }
+            Subcommand::NoCommand => {
+                eprintln!("johnnybgoode: Johnnybgoode must be used with additional arguments, not as a standalone command");
+            }
+        }
+    }
+}
+
+enum Subcommand {
+    NoCommand,
+    NonValid(String),
+    GetPath(String),
+    ExportMd(PathBuf),
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -109,6 +167,7 @@ pub fn get_path(config: Config, location: String) -> PathBuf {
     // Finds path for given location code
     let map = scan_to_map(&config.johnnydecimal_home); // Scans the filesystem and builds map
     let path = map.get(&location); // Extracts the given location from the database // TODO: Build handler for None value
+                                   // eprintln!("Location: {0}\nPath: {1:?}", &location, &path);
     path.unwrap().to_owned() // Unwraps the Option and turns it to a PathBuf, not a reference to one.
 }
 
