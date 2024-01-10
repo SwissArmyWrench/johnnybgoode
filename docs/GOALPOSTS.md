@@ -4,23 +4,25 @@ This file contains a summary of what is yet to be done when looking forward to t
 
 ## Release Goals for Version 1.0.0
 
-- [ ] Create contribution guidelines
-- [ ] Create deployment system and guidelines
+- [x] Create contribution guidelines
+- [x] Create deployment system and guidelines
 - [x] Create usage docs
 - [ ] Build in customizability for file/folder name parsing
 - [ ] Test on major platforms and shells
 - [ ] Write and test shell scripts for `johnny jump` on PowerShell, Bash, and Mac
 - [x] Build cloneable / copyable dummy JohnnyDecimal setup for testing
-- [ ] Integrate env variables for Johnny Decimal top level path
+- [ ] ~~Integrate env variables for Johnny Decimal top level path~~ Setup standard location for config file on various systems
 - [x] Integrate customization YAML file
 
 ## Goals for Later Versions
+
 - Jump to area or category folder
 - `johnny next` command to create next folder in numbering system
 - collect data about file size/space usage
 - automatically update index file when something changes
 - warnings for out-of-place files or folders
 - checking/enforcing of per-folder name schemes
+- Use environment variables for non-default config file location
 
 ### How this file works
 
