@@ -25,10 +25,8 @@ impl Config {
         let dir = dirs.config_local_dir();
         let mut path = dir.to_path_buf();
         path.push("config.yaml");
-        eprintln!("Attempting to open {}", &path.display());
         let conf = File::open(path).expect("Unable to open file.");
         let config = serde_yaml::from_reader(conf).expect("Unable to parse YAML.");
-        println!("Grabbed config {:?}", config);
         config
     }
 }
