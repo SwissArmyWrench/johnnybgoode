@@ -2,12 +2,22 @@
 
 Numerous shells exist, so as scripts are created for each, they will be added here. The list is in alphabetical order.
 
+## Bash
+
+Open your `.bashrc` in a text editor of your choice. Add the following:
+
+```bash
+function jump() {
+  cd $(johnnybgoode path $1)
+}
+```
+
 ## Nushell
 
-Open your config with `nano $nu.config-path` (or another editor of your choice) and scroll to the bottom and append the following code:
+Open your config with `vim $nu.config-path` (or another editor of your choice) and scroll to the bottom and append the following code:
 
 ```nu
-def --env "johnny jump" [code] {
-    cd (johnny path $code)
+def --env jump [code] {
+    cd (johnnybgoode path $code)
 }
 ```
