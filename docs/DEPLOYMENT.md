@@ -4,7 +4,14 @@ Johnnybgoode depends on Rust, and Rust's package manager Cargo. The Rust toolcha
 
 To download a local copy of this repo, navigate to a folder where you'd like to keep it, and run `git clone https://github.com/SwissArmyWrench/johnnybgoode.git`.
 
-Browse through ARCHITECTURE.md to understand how the codebase works. **To use with your own file system**, a few things need to be updated with some file paths in order for this project to run. Edit the `Config` struct literal in line 8 of `src/main.rs` with the path to the top level of your johnny decimal folder. Also provide either "ACID" (12.34 numbering style) or "DACID" (A12.34 numbering style) for the `name_scheme` field. However, **for experimentation and development**, this can be left as default, since it will reach to the `dummydecimal` testing folder structure found in this repo's root folder. NOTE: For these paths to work, commands must be run from the project's root directory.
+Browse through ARCHITECTURE.md to understand how the codebase works. **To use with your own file system**, a few things need to be updated with some file paths in order for this project to run. The code will look for a `config.yaml` file your system's standard location for config files. This is handled by the `directories` crate. Below is a table showing the locations for a given user named "Alice" on each major system:
+
+| Platform | Path |
+| -------- | --------- |
+| Windows | C:\Users\Alice\AppData\Local\SwissArmyWrench\johnnybgoode\config\config.yaml |
+| Linux | /home/Alice/.config/johnnybgoode/config.yaml |
+
+In the appropriate location, create a file named `config.yaml` (note that this must be yaml with an A, and not yml, at the time of writing). An example is included in the docs folder to explain how to set it up. For development and/or testing purposes, simply give it an absolute path to the "dummydecimal" folder found in the root of this repo, which contains an example structure. The `name_scheme` option must be set to ACID for this structure to be usable.
 
 Then, to build from source, run `cargo build`. You can find a freshly compiled executable in /target/debug/johnnybgoode.exe. Note that this executable is compiled with the debug rules, meaning that it is not optimized. To compile a release-ready version, use `cargo build --release`, which outputs into target/release/. If you encounter errors with compiling, run `rustup update` to update to the latest version of the toolchain.
 
