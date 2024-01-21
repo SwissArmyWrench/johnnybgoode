@@ -2,6 +2,7 @@
 //######           Use Statements           ######
 //################################################
 
+use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use std::{cmp::Ordering, collections::HashMap, fs::File, io::Write, path::PathBuf}; // Used to collect arguments from command line
@@ -16,6 +17,22 @@ pub struct Config {
     pub johnnydecimal_home: PathBuf,
     pub name_scheme: String,
 }
+
+impl Config {
+    pub fn load() -> Config {
+        let dirs = ProjectDirs::from("com", "SwissArmyWrench", "johnnybgoode")
+            .expect("Unable to find config directory");
+        let dir = dirs.config_local_dir();
+        let mut path = dir.to_path_buf();
+        path.push("config.yaml");
+        eprintln!("Attempting to open {}", &path.display());
+        let conf = File::open(path).expect("Unable to open file.");
+        let config = serde_yaml::from_reader(conf).expect("Unable to parse YAML.");
+        println!("Grabbed config {:?}", config);
+        config
+    }
+}
+
 pub struct Command {
     intent: Subcommand,
     config: Config,

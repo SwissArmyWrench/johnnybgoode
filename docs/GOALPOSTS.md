@@ -11,7 +11,7 @@ This file contains a summary of what is yet to be done when looking forward to t
 - [ ] Test on major platforms and shells
 - [ ] Write and test shell scripts for `johnny jump` on PowerShell, Bash, and Mac
 - [x] Build cloneable / copyable dummy JohnnyDecimal setup for testing
-- [ ] ~~Integrate env variables for Johnny Decimal top level path~~ Setup standard location for config file on various systems
+- [x] ~~Integrate env variables for Johnny Decimal top level path~~ Setup standard location for config file on various systems
 - [x] Integrate customization YAML file
 
 ## Goals for Later Versions
@@ -24,6 +24,8 @@ This file contains a summary of what is yet to be done when looking forward to t
 - checking/enforcing of per-folder name schemes
 - Use environment variables for non-default config file location
 - Help text under `johnny help`
+- `johnny info` command to provide info like expected config file path.
+- Built in setup system
 
 ### How this file works
 
