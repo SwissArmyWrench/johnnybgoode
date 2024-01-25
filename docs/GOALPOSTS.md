@@ -8,11 +8,12 @@ This file contains a summary of what is yet to be done when looking forward to t
 - [x] Create deployment system and guidelines
 - [x] Create usage docs
 - [x] Build in customizability for file/folder name parsing
-- [ ] Test on major platforms and shells
-- [ ] Write and test shell scripts for `johnny jump` on PowerShell, Bash, and Mac
 - [x] Build cloneable / copyable dummy JohnnyDecimal setup for testing
 - [x] ~~Integrate env variables for Johnny Decimal top level path~~ Setup standard location for config file on various systems
 - [x] Integrate customization YAML file
+
+Notes:
+Goals for testing on major shells and platforms have been tabled for the time being. Since the additional shell scripting required is simple and would not affect version numbers. It has been tested on Windows and Linux and the UNIX underpinnings of MacOS should pose no problem.
 
 ## Goals for Later Versions
 
