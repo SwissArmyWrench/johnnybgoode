@@ -2,9 +2,9 @@
 
 Numerous shells exist, so as scripts are created for each, they will be added here. The list is in alphabetical order.
 
-## Bash
+## Bash/Zsh
 
-Open your `.bashrc` in a text editor of your choice. Add the following:
+Open your `.bashrc` or `.zshrc` in a text editor of your choice. Add the following:
 
 ```bash
 function jump() {
