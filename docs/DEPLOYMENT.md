@@ -10,7 +10,7 @@ Browse through ARCHITECTURE.md to understand how the codebase works. **To use wi
 | -------- | --------- |
 | Windows | C:\Users\Alice\AppData\Local\SwissArmyWrench\johnnybgoode\config\config.yaml |
 | Linux | /home/Alice/.config/johnnybgoode/config.yaml |
-| MacOS | /Users/Alice/Library/Application\ Support/com.SwissArmyWrench.johnnybgoode/config.yaml |
+| MacOS | /Users/Alice/Library/Application Support/com.SwissArmyWrench.johnnybgoode/config.yaml |
 
 In the appropriate location, create a file named `config.yaml` (note that this must be yaml with an A, and not yml, at the time of writing). An example is included in the docs folder to explain how to set it up. For development and/or testing purposes, simply give it an absolute path to the "dummydecimal" folder found in the root of this repo, which contains an example structure. The `name_scheme` option must be set to ACID for this structure to be usable. Alternatively, configure this to work properly with your own production structure and make your terminal navigation far more efficient!
 
