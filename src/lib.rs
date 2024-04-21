@@ -5,7 +5,16 @@
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
-use std::{cmp::Ordering, collections::HashMap, fs::File, io::Write, path::PathBuf}; // Used to collect arguments from command line
+use std::{
+    cmp::Ordering,
+    collections::HashMap,
+    error::{self, Error},
+    fs::File,
+    io::Write,
+    num::ParseIntError,
+    path::PathBuf,
+    string::ParseError,
+}; // Used to collect arguments from command line
 use walkdir::WalkDir; // Used to get the contents of folder
 
 //################################################
@@ -143,7 +152,7 @@ impl JohnnyLevel {
                 unreachable!("get_cat_number() cannot be called on JohnnyLevel::Area")
             }
             JohnnyLevel::Category(num) => num.to_owned(),
-            JohnnyLevel::Individual(code) => extract_cat(code),
+            JohnnyLevel::Individual(code) => extract_cat(code).unwrap(),
         }
     }
 
@@ -154,7 +163,7 @@ impl JohnnyLevel {
             }
             JohnnyLevel::Area(num) => num.to_owned(),
             JohnnyLevel::Category(num) => extract_area(num.to_owned()),
-            JohnnyLevel::Individual(code) => extract_area(extract_cat(code)),
+            JohnnyLevel::Individual(code) => extract_area(extract_cat(code).unwrap()),
         }
     }
 
@@ -165,8 +174,15 @@ impl JohnnyLevel {
             JohnnyLevel::Category(num) => *num,
             JohnnyLevel::Individual(loc_code) => {
                 let sliceable: &str = loc_code;
+                // println!("ATTEMPTING TO PARSE {}", &sliceable); // enable for debug verbosity
                 let key = &sliceable[4..6];
-                str::parse::<i32>(key).expect("Unable to find a number")
+                str::parse::<i32>(key).expect(
+                    format!(
+                        "Unable to find a number in key {} / slice {}",
+                        key, sliceable
+                    )
+                    .as_str(),
+                )
             } // returns ID from DAC.ID
         }
     }
@@ -183,7 +199,17 @@ pub fn scan_to_map(config: &Config) -> HashMap<String, PathBuf> {
         let item = location.unwrap(); // Semi unsafe, unwrapping Result<T, E> without error handling
         let filepath = item.into_path(); // Turns the item into an owned PathBuf
         let loc_code = extract_location(config, &filepath); // Uses a reference to that path to extract the location code
-        map.insert(loc_code, filepath); // Inserts key and path into the HashMap
+        match validate_code(&loc_code) {
+            Ok(bool) => {
+                map.insert(loc_code, filepath);
+            } // Inserts key and path into the HashMap if location code is valid
+            Err(_) => {
+                eprintln!(
+                    "Misplaced file found at \"{}\", gracefully skipping",
+                    filepath.to_string_lossy()
+                )
+            }
+        }
     }
     map // Returns the HashMap
 }
@@ -226,6 +252,14 @@ fn extract_location_test() {
     assert_eq!(extract_location(&config, &path), "12.03");
 }
 
+fn validate_code(code: &String) -> Result<bool, ParseIntError> {
+    let check_cat = extract_cat(code);
+    match check_cat {
+        Ok(_) => Ok(true),
+        Err(error) => Err(error),
+    }
+}
+
 fn extract_name(path: &PathBuf) -> String {
     // Stable
     let name = match path.file_name() {
@@ -246,24 +280,18 @@ fn extract_area(catnumber: i32) -> i32 {
     (catnumber - catnumber % 10) / 10
 }
 
-fn extract_cat(code: &String) -> i32 {
+fn extract_cat(code: &String) -> Result<i32, ParseIntError> {
     // let code = code.chars().collect();
     let code: &str = code;
     let digit = &code[1..3];
-    match str::parse::<i32>(digit) {
-        Ok(number) => number,
-        Err(error) => panic!(
-            "Couldn't pull digit from location code \"{1}\": {0}",
-            error, code
-        ),
-    }
+    str::parse::<i32>(digit)
     // println!("{:?}", digit); // Uncomment for added verbosity
 }
 
 #[test]
 fn extract_cat_test() {
     let code = String::from("M11.03");
-    assert_eq!(extract_cat(&code), 11);
+    assert_eq!(extract_cat(&code).unwrap(), 11);
 }
 
 pub fn build_tree(config: &Config, map: &HashMap<String, PathBuf>) -> JohnnyFolder {
@@ -279,7 +307,15 @@ pub fn build_tree(config: &Config, map: &HashMap<String, PathBuf>) -> JohnnyFold
             name: extract_name(path),
             children: Vec::new(),
         };
-        individuals.push(new);
+        match validate_code(&extract_location(config, path)) {
+            Ok(_) => individuals.push(new),
+            Err(_) => {
+                eprintln!(
+                    "Misplaced file found at \"{}\", gracefully skipping",
+                    path.to_string_lossy()
+                )
+            }
+        };
     }
 
     let mut categories: Vec<JohnnyFolder> = Vec::new(); // inits vec of categories
