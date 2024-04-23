@@ -7,6 +7,7 @@ This file contains a summary of what is yet to be done when looking forward to t
 - [ ] Out-of-place file warnings at all levels
 - [ ] User-configurable exceptions to those warnings
 - [ ] Exporting the index in serialization languages like YAML, TOML, or JSON
+- [ ] Fix markdown exporter to pass the linter's style guide
 - [ ] Built in system to walk user through first-time setup
 
 ## Release Goals for Version 1.0.0
