@@ -2,7 +2,16 @@
 
 This file contains a summary of what is yet to be done when looking forward to the upcoming release. [Learn more](#how-this-file-works).
 
+## Release Goals for Version 1.1.0
+
+- [ ] Out-of-place file warnings at all levels
+- [ ] User-configurable exceptions to those warnings
+- [ ] Exporting the index in serialization languages like YAML, TOML, or JSON
+- [ ] Built in system to walk user through first-time setup
+
 ## Release Goals for Version 1.0.0
+
+Version 1.0.0 was released on April 24th, 2024, for all major systems on x86 architectures!
 
 - [x] Create contribution guidelines
 - [x] Create deployment system and guidelines
