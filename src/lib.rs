@@ -200,16 +200,14 @@ pub fn scan_to_map(config: &Config) -> HashMap<String, PathBuf> {
         let item = location.unwrap(); // Semi unsafe, unwrapping Result<T, E> without error handling
         let filepath = item.into_path(); // Turns the item into an owned PathBuf
         let loc_code = extract_location(config, &filepath); // Uses a reference to that path to extract the location code
-        match validate_code(&loc_code) {
-            Ok(bool) => {
-                map.insert(loc_code, filepath);
-            } // Inserts key and path into the HashMap if location code is valid
-            Err(_) => {
-                eprintln!(
+        // convert to updated validate_code which returns bool  
+        if validate_code(&loc_code) {
+            map.insert(loc_code, filepath);
+        } else {
+            eprintln!(
                     "Misplaced file found at \"{}\", gracefully skipping",
                     filepath.to_string_lossy()
-                )
-            }
+                );
         }
     }
     map // Returns the HashMap
@@ -242,12 +240,20 @@ fn extract_location_test() {
     assert_eq!(extract_location(&config, &path), "12.03");
 }
 
-fn validate_code(code: &String) -> Result<bool, ParseIntError> {
-    let check_cat = extract_cat(code);
-    match check_cat {
-        Ok(_) => Ok(true),
-        Err(error) => Err(error),
-    }
+// TODO: implement regex here 
+fn validate_code(code: &String) -> bool {
+    let regex = Regex::new(r"(?<AC>[0-9]{2})[ \.]?(?<ID>[0-9]{2})").unwrap();
+    regex.is_match(code)
+    
+}
+
+#[test]
+fn validator_test(){
+    let good_code = String::from("11.03"); // currently only passes with M11.03
+    let bad_code = String::from("BAD");
+
+    assert_eq!(Ok(true), validate_code(&good_code));
+    assert_ne!(Ok(true), validate_code(&bad_code));
 }
 
 fn extract_name(path: &PathBuf) -> String {
@@ -297,15 +303,15 @@ pub fn build_tree(config: &Config, map: &HashMap<String, PathBuf>) -> JohnnyFold
             name: extract_name(path),
             children: Vec::new(),
         };
-        match validate_code(&extract_location(config, path)) {
-            Ok(_) => individuals.push(new),
-            Err(_) => {
-                eprintln!(
-                    "Misplaced file found at \"{}\", gracefully skipping",
-                    path.to_string_lossy()
-                )
-            }
-        };
+
+        if validate_code(&extract_location(config, path)) {
+            individuals.push(new);
+        } else {
+            eprintln!(
+                "Misplaced file found at \"{}\", gracefully skipping",
+                path.to_string_lossy()
+            );
+        }
     }
 
     let mut categories: Vec<JohnnyFolder> = Vec::new(); // inits vec of categories
