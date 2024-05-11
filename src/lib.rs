@@ -16,6 +16,7 @@ use std::{
     string::ParseError,
 }; // Used to collect arguments from command line
 use walkdir::WalkDir; // Used to get the contents of folder
+use regex::Regex;
 
 //################################################
 //######           Data Modeling            ######
@@ -223,23 +224,12 @@ pub fn get_path(config: &Config, location: String) -> PathBuf {
 }
 
 // Stable UNLESS improperly sorted file exists in a Root, Area, or Category folder. TODO: Implement some behavior for this.
-fn extract_location(config: &Config, path: &PathBuf) -> String {
-    // Derives location code from full path
-    let path = path.to_owned(); // Created owned copy of reference
-    let folder = match path.file_name() {
-        // Unwraps the Option
-        Some(foldername) => foldername,
-        None => panic!("Unable to read folder/location name (parsing folder code from full path"),
-    };
-    // println!("{:?}", &folder); // Uncomment for verbosity for debugging
-    let folder = String::from(folder.to_string_lossy()); //Roundabout way of OsStr -> String conversion
-    if config.name_scheme == "ACID" {
-        return folder[0..5].to_owned();
-    } else if config.name_scheme == "DACID" {
-        return folder[0..6].to_owned();
-    }
+fn extract_location(config: &Config, path: &PathBuf)  -> String  {
+    let regex = Regex::new(r"(?<AC>[0-9]{2})[ \.]?(?<ID>[0-9]{2})").unwrap(); // Create the main regex to match JD
+    let regex_out = regex.captures(path.as_path().to_str().unwrap());
+    let caps = regex_out.unwrap();
+    format!("{}.{}", &caps["AC"], &caps["ID"])
 
-    folder[0..6].to_owned() //Returns first six characters of folder path // TODO: adjust with environment variables
 }
 #[test]
 fn extract_location_test() {
