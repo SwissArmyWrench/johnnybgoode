@@ -6,7 +6,7 @@ This file contains a summary of what is yet to be done when looking forward to t
 
 - [x] Implement regex for greater flexibilty and reliability with parsing names
 - [x] Add custom regex field in configuration
-- [ ] Improve documentation for deployment
+- [x] Improve documentation for deployment
 
 ## Release Goals for Version 1.0.0
 
