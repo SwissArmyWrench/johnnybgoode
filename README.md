@@ -2,7 +2,7 @@
 
 An assistant for users of the [Johnny Decimal](https://johnnydecimal.com) file organization system.
 
-**V1.0.0 is here!** Download the binaries in the releases tab.
+**V1.1.0 is here**, bringing bringing regex functionality for matching folder names and the ability to fine-tune it to your own personal naming system. Read about the new configuration options in the docs folder. Download the binaries in the releases tab.
 
 Learn to [use](https://github.com/SwissArmyWrench/johnnybgoode/blob/main/docs/USER_MANUAL.md) or [deploy](https://github.com/SwissArmyWrench/johnnybgoode/blob/main/docs/DEPLOYMENT.md) `johnnybgoode`.
 

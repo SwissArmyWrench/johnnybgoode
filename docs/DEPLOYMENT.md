@@ -1,3 +1,17 @@
+# Installing for usage with your system
+
+Johnnybgoode only requires a config file which instructs it of a few optional things, and just one mandatory thing: a full path to the top folder of a Johnny Decimal structure. 
+
+Below is a table that explains where to place this folder, depending on your system:
+
+| Platform | Path |
+| -------- | --------- |
+| Windows | C:\Users\Alice\AppData\Local\SwissArmyWrench\johnnybgoode\config\config.yaml |
+| Linux | /home/Alice/.config/johnnybgoode/config.yaml |
+| MacOS | /Users/Alice/Library/Application Support/com.SwissArmyWrench.johnnybgoode/config.yaml |
+
+With this config file in place, and the configuration setup as directed in CONFIGURATION.md, you can call johnnybgoode from the command line, either using an alias that corresponds to the executable itself, or by adding it to PATH. This will be automated with an installer script at some point in the future, but for now, this will need to be done manually.
+
 # Deploying for development
 
 Johnnybgoode depends on Rust, and Rust's package manager Cargo. The Rust toolchain can be installed at [rustup.rs](https://rustup.rs).

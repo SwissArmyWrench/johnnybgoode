@@ -4,11 +4,9 @@ This file contains a summary of what is yet to be done when looking forward to t
 
 ## Release Goals for Version 1.1.0
 
-- [ ] Out-of-place file warnings at all levels
-- [ ] User-configurable exceptions to those warnings
-- [ ] Exporting the index in serialization languages like YAML, TOML, or JSON
-- [ ] Fix markdown exporter to pass the linter's style guide
-- [ ] Built in system to walk user through first-time setup
+- [x] Implement regex for greater flexibilty and reliability with parsing names
+- [x] Add custom regex field in configuration
+- [ ] Improve documentation for deployment
 
 ## Release Goals for Version 1.0.0
 
@@ -22,9 +20,6 @@ Version 1.0.0 was released on April 24th, 2024, for all major systems on x86 arc
 - [x] ~~Integrate env variables for Johnny Decimal top level path~~ Setup standard location for config file on various systems
 - [x] Integrate customization YAML file
 
-Notes:
-Goals for testing on major shells and platforms have been tabled for the time being. Since the additional shell scripting required is simple and would not affect version numbers. It has been tested on Windows and Linux and the UNIX underpinnings of MacOS should pose no problem.
-
 ## Goals for Later Versions
 
 - Jump to area or category folder
@@ -37,6 +32,11 @@ Goals for testing on major shells and platforms have been tabled for the time be
 - Help text under `johnny help`
 - `johnny info` command to provide info like expected config file path.
 - Built in setup system
+- Out-of-place file warnings at all levels
+- User-configurable exceptions to those warnings
+- Exporting the index in serialization languages like YAML, TOML, or JSON
+- Built in system to walk user through first-time setup
+
 
 ### How this file works
 
