@@ -240,7 +240,6 @@ fn extract_location_test() {
     assert_eq!(extract_location(&config, &path), "12.03");
 }
 
-// TODO: implement regex here 
 fn validate_code(code: &String) -> bool {
     let regex = Regex::new(r"(?<AC>[0-9]{2})[ \.]?(?<ID>[0-9]{2})").unwrap();
     regex.is_match(code)
@@ -252,8 +251,8 @@ fn validator_test(){
     let good_code = String::from("11.03"); // currently only passes with M11.03
     let bad_code = String::from("BAD");
 
-    assert_eq!(Ok(true), validate_code(&good_code));
-    assert_ne!(Ok(true), validate_code(&bad_code));
+    assert!(validate_code(&good_code));
+    assert!(!(validate_code(&bad_code)));
 }
 
 fn extract_name(path: &PathBuf) -> String {
