@@ -1,3 +1,4 @@
 johnnydecimal_home: "UPDATEME" # An absolute path to the top folder of a JohnnyDecimal structure
 name_scheme: ACID # Can be ACID or DACID (12.34 vs M12.34)
+regex: auto
 

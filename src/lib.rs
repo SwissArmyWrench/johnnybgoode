@@ -26,6 +26,7 @@ use regex::Regex;
 pub struct Config {
     pub johnnydecimal_home: PathBuf,
     pub name_scheme: String,
+    pub regex: Option<String>
 }
 
 impl Config {
@@ -36,7 +37,11 @@ impl Config {
         let mut path = dir.to_path_buf();
         path.push("config.yaml");
         let conf = File::open(path).expect("Unable to open file.");
-        let config = serde_yaml::from_reader(conf).expect("Unable to parse YAML.");
+        let config: Config = serde_yaml::from_reader(conf).expect("Unable to parse YAML.");
+        match &config.regex {
+            Some(pattern) => {println!("Regex present in config: {}", pattern);},
+            None => {println!("No regex present in config");},
+        };
         config
     }
 }
@@ -223,7 +228,10 @@ pub fn get_path(config: &Config, location: String) -> PathBuf {
 
 // Stable UNLESS improperly sorted file exists in a Root, Area, or Category folder. TODO: Implement some behavior for this.
 fn extract_location(config: &Config, path: &PathBuf)  -> String  {
-    let regex = Regex::new(r"(?<AC>[0-9]{2})[ \.]?(?<ID>[0-9]{2})").unwrap(); // Create the main regex to match JD
+    let regex = match &config.regex {
+        Some(pattern) => Regex::new(pattern.as_str()).unwrap(),
+        None => Regex::new(r"(?<AC>[0-9]{2})[ \.]?(?<ID>[0-9]{2})").unwrap() // Create the main regex to match JD
+    };
     let regex_out = regex.captures(path.as_path().to_str().unwrap());
     let caps = regex_out.unwrap();
     format!("{}.{}", &caps["AC"], &caps["ID"])
