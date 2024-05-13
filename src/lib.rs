@@ -175,16 +175,11 @@ impl JohnnyLevel {
             JohnnyLevel::Area(num) => *num,
             JohnnyLevel::Category(num) => *num,
             JohnnyLevel::Individual(loc_code) => {
-                let sliceable: &str = loc_code;
                 // println!("ATTEMPTING TO PARSE {}", &sliceable); // enable for debug verbosity
-                let key = &sliceable[4..6];
-                str::parse::<i32>(key).expect(
-                    format!(
-                        "Unable to find a number in key {} / slice {}",
-                        key, sliceable
-                    )
-                    .as_str(),
-                )
+                
+                let regex = Regex::new(r"[0-9]{2}[ \.]?(?<KEY>[0-9]{2})").unwrap();
+                let caps = regex.captures(loc_code).unwrap();
+                str::parse::<i32>(&caps["KEY"]).expect("Regex match failed")
             } // returns ID from DAC.ID
         }
     }
@@ -280,11 +275,16 @@ fn extract_area(catnumber: i32) -> i32 {
 }
 
 fn extract_cat(code: &String) -> Result<i32, ParseIntError> {
+    let regex = Regex::new(r"(?<cat>[0-9]{2})[ \.]?[0-9]{2}").unwrap();
+    let capture = &regex.captures(&code).unwrap()["cat"];
+    str::parse::<i32>(&capture)
+    /*
     // let code = code.chars().collect();
     let code: &str = code;
     let digit = &code[1..3];
     str::parse::<i32>(digit)
     // println!("{:?}", digit); // Uncomment for added verbosity
+    */
 }
 
 #[test]
