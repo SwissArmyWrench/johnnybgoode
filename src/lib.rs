@@ -3,6 +3,7 @@
 //################################################
 
 use directories::ProjectDirs;
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use std::{
@@ -16,7 +17,6 @@ use std::{
     string::ParseError,
 }; // Used to collect arguments from command line
 use walkdir::WalkDir; // Used to get the contents of folder
-use regex::Regex;
 
 //################################################
 //######           Data Modeling            ######
@@ -26,7 +26,7 @@ use regex::Regex;
 pub struct Config {
     pub johnnydecimal_home: PathBuf,
     pub name_scheme: String,
-    pub regex: Option<String>
+    pub regex: Option<String>,
 }
 
 impl Config {
@@ -176,7 +176,7 @@ impl JohnnyLevel {
             JohnnyLevel::Category(num) => *num,
             JohnnyLevel::Individual(loc_code) => {
                 // println!("ATTEMPTING TO PARSE {}", &sliceable); // enable for debug verbosity
-                
+
                 let regex = Regex::new(r"[0-9]{2}[ \.]?(?<KEY>[0-9]{2})").unwrap();
                 let caps = regex.captures(loc_code).unwrap();
                 str::parse::<i32>(&caps["KEY"]).expect("Regex match failed")
@@ -196,14 +196,14 @@ pub fn scan_to_map(config: &Config) -> HashMap<String, PathBuf> {
         let item = location.unwrap(); // Semi unsafe, unwrapping Result<T, E> without error handling
         let filepath = item.into_path(); // Turns the item into an owned PathBuf
         let loc_code = extract_location(config, &filepath); // Uses a reference to that path to extract the location code
-        // convert to updated validate_code which returns bool  
+                                                            // convert to updated validate_code which returns bool
         if validate_code(&loc_code) {
             map.insert(loc_code, filepath);
         } else {
             eprintln!(
-                    "Misplaced file found at \"{}\", gracefully skipping",
-                    filepath.to_string_lossy()
-                );
+                "Misplaced file found at \"{}\", gracefully skipping",
+                filepath.to_string_lossy()
+            );
         }
     }
     map // Returns the HashMap
@@ -218,15 +218,14 @@ pub fn get_path(config: &Config, location: String) -> PathBuf {
 }
 
 // Stable UNLESS improperly sorted file exists in a Root, Area, or Category folder. TODO: Implement some behavior for this.
-fn extract_location(config: &Config, path: &PathBuf)  -> String  {
+fn extract_location(config: &Config, path: &PathBuf) -> String {
     let regex = match &config.regex {
         Some(pattern) => Regex::new(pattern.as_str()).unwrap(),
-        None => Regex::new(r"(?<AC>[0-9]{2})[ \.]?(?<ID>[0-9]{2})").unwrap() // Create the main regex to match JD
+        None => Regex::new(r"(?<AC>[0-9]{2})[ \.]?(?<ID>[0-9]{2})").unwrap(), // Create the main regex to match JD
     };
     let regex_out = regex.captures(path.as_path().to_str().unwrap());
     let caps = regex_out.unwrap();
     format!("{}.{}", &caps["AC"], &caps["ID"])
-
 }
 #[test]
 fn extract_location_test() {
@@ -235,6 +234,7 @@ fn extract_location_test() {
     let config = Config {
         johnnydecimal_home: PathBuf::from("./dummydecimal"),
         name_scheme: String::from("ACID"),
+        regex: None,
     };
     assert_eq!(extract_location(&config, &path), "12.03");
 }
@@ -242,11 +242,10 @@ fn extract_location_test() {
 fn validate_code(code: &String) -> bool {
     let regex = Regex::new(r"(?<AC>[0-9]{2})[ \.]?(?<ID>[0-9]{2})").unwrap();
     regex.is_match(code)
-    
 }
 
 #[test]
-fn validator_test(){
+fn validator_test() {
     let good_code = String::from("11.03"); // currently only passes with M11.03
     let bad_code = String::from("BAD");
 
