@@ -38,10 +38,6 @@ impl Config {
         path.push("config.yaml");
         let conf = File::open(path).expect("Unable to open file.");
         let config: Config = serde_yaml::from_reader(conf).expect("Unable to parse YAML.");
-        match &config.regex {
-            Some(pattern) => {println!("Regex present in config: {}", pattern);},
-            None => {println!("No regex present in config");},
-        };
         config
     }
 }
