@@ -9,12 +9,10 @@ use serde_yaml::{self};
 use std::{
     cmp::Ordering,
     collections::HashMap,
-    error::{self, Error},
     fs::File,
     io::Write,
     num::ParseIntError,
-    path::PathBuf,
-    string::ParseError,
+    path::{Path, PathBuf},
 }; // Used to collect arguments from command line
 use walkdir::WalkDir; // Used to get the contents of folder
 
@@ -49,7 +47,7 @@ pub struct Command {
 
 impl Command {
     // Parses out a command line command and arguments into a Command struct instance
-    pub fn new(arguments_vec: Vec<String>, config: Config) -> Command {
+    pub fn new(arguments_vec: &[String], config: Config) -> Command {
         let parsed_arg: Subcommand;
         if arguments_vec.len() == 1 {
             parsed_arg = Subcommand::NoCommand;
@@ -76,10 +74,10 @@ impl Command {
     pub fn run(command: Command) {
         match command.intent {
             Subcommand::NonValid(msg) => {
-                eprintln!("{}", msg);
+                eprintln!("{msg}");
             }
             Subcommand::GetPath(code) => {
-                println!("{}", get_path(&command.config, code).to_string_lossy());
+                println!("{}", get_path(&command.config, &code).to_string_lossy());
             }
             Subcommand::ExportMd(path) => {
                 let map = scan_to_map(&command.config);
@@ -112,6 +110,10 @@ pub struct JohnnyFolder {
 impl JohnnyFolder {
     fn get_children(&self) -> &Vec<JohnnyFolder> {
         &self.children
+    }
+
+    fn get_children_mut(&mut self) -> &mut Vec<JohnnyFolder> {
+        &mut self.children
     }
 
     fn get_children_owned(self) -> Vec<JohnnyFolder> {
@@ -172,8 +174,7 @@ impl JohnnyLevel {
     fn get_sorting_key(&self) -> i32 {
         match self {
             JohnnyLevel::Root => unreachable!("Cannot sort Root folders"),
-            JohnnyLevel::Area(num) => *num,
-            JohnnyLevel::Category(num) => *num,
+            JohnnyLevel::Area(num) | JohnnyLevel::Category(num) => *num,
             JohnnyLevel::Individual(loc_code) => {
                 // println!("ATTEMPTING TO PARSE {}", &sliceable); // enable for debug verbosity
 
@@ -209,21 +210,21 @@ pub fn scan_to_map(config: &Config) -> HashMap<String, PathBuf> {
     map // Returns the HashMap
 }
 
-pub fn get_path(config: &Config, location: String) -> PathBuf {
+pub fn get_path(config: &Config, location: &str) -> PathBuf {
     // Finds path for given location code
     let map = scan_to_map(config); // Scans the filesystem and builds map
-    let path = map.get(&location); // Extracts the given location from the database // TODO: Build handler for None value
-                                   // eprintln!("Location: {0}\nPath: {1:?}", &location, &path);
+    let path = map.get(location); // Extracts the given location from the database // TODO: Build handler for None value
+                                  // eprintln!("Location: {0}\nPath: {1:?}", &location, &path);
     path.unwrap().to_owned() // Unwraps the Option and turns it to a PathBuf, not a reference to one.
 }
 
 // Stable UNLESS improperly sorted file exists in a Root, Area, or Category folder. TODO: Implement some behavior for this.
-fn extract_location(config: &Config, path: &PathBuf) -> String {
+fn extract_location(config: &Config, path: &Path) -> String {
     let regex = match &config.regex {
         Some(pattern) => Regex::new(pattern.as_str()).unwrap(),
         None => Regex::new(r"(?<AC>[0-9]{2})[ \.]?(?<ID>[0-9]{2})").unwrap(), // Create the main regex to match JD
     };
-    let regex_out = regex.captures(path.as_path().to_str().unwrap());
+    let regex_out = regex.captures(path.to_str().unwrap());
     let caps = regex_out.unwrap();
     format!("{}.{}", &caps["AC"], &caps["ID"])
 }
@@ -239,7 +240,7 @@ fn extract_location_test() {
     assert_eq!(extract_location(&config, &path), "12.03");
 }
 
-fn validate_code(code: &String) -> bool {
+fn validate_code(code: &str) -> bool {
     let regex = Regex::new(r"(?<AC>[0-9]{2})[ \.]?(?<ID>[0-9]{2})").unwrap();
     regex.is_match(code)
 }
@@ -253,11 +254,10 @@ fn validator_test() {
     assert!(!(validate_code(&bad_code)));
 }
 
-fn extract_name(path: &PathBuf) -> String {
+fn extract_name(path: &Path) -> String {
     // Stable
-    let name = match path.file_name() {
-        Some(name) => name,
-        None => panic!("Unable to read folder/location name (parsing folder name from full path)"),
+    let Some(name) = path.file_name() else {
+        panic!("Unable to read folder/location name (parsing folder name from full path)")
     };
     let name = String::from(name.to_string_lossy());
     name
@@ -273,10 +273,10 @@ fn extract_area(catnumber: i32) -> i32 {
     (catnumber - catnumber % 10) / 10
 }
 
-fn extract_cat(code: &String) -> Result<i32, ParseIntError> {
+fn extract_cat(code: &str) -> Result<i32, ParseIntError> {
     let regex = Regex::new(r"(?<cat>[0-9]{2})[ \.]?[0-9]{2}").unwrap();
-    let capture = &regex.captures(&code).unwrap()["cat"];
-    str::parse::<i32>(&capture)
+    let capture = &regex.captures(code).unwrap()["cat"];
+    str::parse::<i32>(capture)
     /*
     // let code = code.chars().collect();
     let code: &str = code;
@@ -317,14 +317,14 @@ pub fn build_tree(config: &Config, map: &HashMap<String, PathBuf>) -> JohnnyFold
     }
 
     let mut categories: Vec<JohnnyFolder> = Vec::new(); // inits vec of categories
-    for k in 0..individuals.len() {
+    for individual in &mut individuals {
         // iterates over all the individuals
         let mut added = false; // Flag to know if an ID gets filed to a category, or if a new one must be created
-        for i in 0..categories.len() {
+        for category in &mut categories {
             // Loops over the categories looking for the correct one for current individual
-            if categories[i].path == individuals[k].path.parent().unwrap() {
+            if category.path == individual.path.parent().unwrap() {
                 // if correct is found, insert a clone of the individual
-                categories[i].children.push(individuals[k].clone());
+                category.children.push(individual.clone());
                 added = true; // set added flag
             }
         }
@@ -332,31 +332,31 @@ pub fn build_tree(config: &Config, map: &HashMap<String, PathBuf>) -> JohnnyFold
         if !added {
             // if no current cat is found, create it
             categories.push(JohnnyFolder {
-                path: individuals[k].path.parent().unwrap().to_owned(), // path to cat folder based on id folder's path
-                name: extract_name(&individuals[k].path.parent().unwrap().to_owned()), // extracts folder name based on path
-                level: JohnnyLevel::Category(individuals[k].level.get_cat_number()), // needs (String, i32) to preserve origin
-                children: Vec::from([individuals[k].clone()]),
-            })
+                path: individual.path.parent().unwrap().to_owned(), // path to cat folder based on id folder's path
+                name: extract_name(individual.path.parent().unwrap()), // extracts folder name based on path
+                level: JohnnyLevel::Category(individual.level.get_cat_number()), // needs (String, i32) to preserve origin
+                children: Vec::from([individual.clone()]),
+            });
         }
     }
     // at this point in the code all of the individuals have been sorted away into the appropriate categories
     let mut areas: Vec<JohnnyFolder> = Vec::new(); // init vec of areas
-    for k in 0..categories.len() {
+    for category in categories {
         let mut added = false;
-        for i in 0..areas.len() {
-            if areas[i].path == categories[k].path.parent().unwrap() {
-                areas[i].children.push(categories[k].clone());
+        for area in &mut areas {
+            if area.path == category.path.parent().unwrap() {
+                area.children.push(category.clone());
                 added = true; // set added flag
             }
         }
 
         if !added {
             areas.push(JohnnyFolder {
-                path: categories[k].path.parent().unwrap().to_owned(),
-                name: extract_name(&categories[k].path.parent().unwrap().to_owned()),
-                level: JohnnyLevel::Area(categories[k].level.get_area_number()), // TODO: Derive this number
-                children: vec![categories[k].clone()],
-            })
+                path: category.path.parent().unwrap().to_owned(),
+                name: extract_name(category.path.parent().unwrap()),
+                level: JohnnyLevel::Area(category.level.get_area_number()), // TODO: Derive this number
+                children: vec![category.clone()],
+            });
         }
     }
 
@@ -375,9 +375,8 @@ pub fn export(root: JohnnyFolder, filepath: PathBuf) {
 
     let mut areas = root.get_children_owned();
     areas.sort();
-    for k in 0..areas.len() {
+    for mut area in areas {
         // looping over AREAS
-        let area = &mut areas[k];
         writeln!(
             markdown,
             "## Area {0} - {1}\n",
@@ -387,10 +386,8 @@ pub fn export(root: JohnnyFolder, filepath: PathBuf) {
         .expect("Unable to write to markdown file");
         area.children.sort();
 
-        let mut cats = area.clone().get_children_owned();
-        for i in 0..area.children.len() {
+        for cat in area.get_children_mut() {
             // looping over CATEGORIES
-            let cat = &mut cats[i];
             writeln!(
                 markdown,
                 "### Category {0} - {1}\n",
@@ -400,9 +397,7 @@ pub fn export(root: JohnnyFolder, filepath: PathBuf) {
             .expect("Unable to write to markdown file");
             cat.children.sort();
 
-            let mut ids = cat.clone().get_children_owned();
-            for j in 0..cat.children.len() {
-                let id = &mut ids[j];
+            for id in cat.get_children() {
                 writeln!(markdown, "**{}**\n", id.name).expect("Unable to write to markdown file");
             }
         }
