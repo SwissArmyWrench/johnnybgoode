@@ -225,7 +225,8 @@ pub fn get_path(config: &Config, location: &str) -> PathBuf {
     let unwrapped: &PathBuf;
     match path {
         Some(returned_path) => {unwrapped = returned_path;},
-        None => {graceful_crash(3077);
+        None => {eprintln!("Johnnybgoode cannot find any folder corresponding to location code \"{}\"", location);
+                graceful_crash(3077);
                  unreachable!();}
     };
     unwrapped.to_owned() // Unwraps the Option and turns it to a PathBuf, not a reference to one.
