@@ -210,12 +210,25 @@ pub fn scan_to_map(config: &Config) -> HashMap<String, PathBuf> {
     map // Returns the HashMap
 }
 
+fn graceful_crash(code: u16) {
+    // impl some type of lookup here
+    eprintln!("Unexpected failure: Error JBG-{code}");
+    eprintln!("Gracefully exiting...");
+    std::process::exit(0);
+}
+
 pub fn get_path(config: &Config, location: &str) -> PathBuf {
     // Finds path for given location code
     let map = scan_to_map(config); // Scans the filesystem and builds map
     let path = map.get(location); // Extracts the given location from the database // TODO: Build handler for None value
                                   // eprintln!("Location: {0}\nPath: {1:?}", &location, &path);
-    path.unwrap().to_owned() // Unwraps the Option and turns it to a PathBuf, not a reference to one.
+    let unwrapped: &PathBuf;
+    match path {
+        Some(returned_path) => {unwrapped = returned_path;},
+        None => {graceful_crash(3077);
+                 unreachable!();}
+    };
+    unwrapped.to_owned() // Unwraps the Option and turns it to a PathBuf, not a reference to one.
 }
 
 // Stable UNLESS improperly sorted file exists in a Root, Area, or Category folder. TODO: Implement some behavior for this.
@@ -224,7 +237,7 @@ fn extract_location(config: &Config, path: &Path) -> String {
         Some(pattern) => Regex::new(pattern.as_str()).unwrap(),
         None => Regex::new(r"(?<AC>[0-9]{2})[ \.]?(?<ID>[0-9]{2})").unwrap(), // Create the main regex to match JD
     };
-    let regex_out = regex.captures(path.to_str().unwrap());
+    let regex_out = regex.captures(path.to_str().unwrap()); // Unsafe unwrap, needs handled
     let caps = regex_out.unwrap();
     format!("{}.{}", &caps["AC"], &caps["ID"])
 }
@@ -241,7 +254,10 @@ fn extract_location_test() {
 }
 
 fn validate_code(code: &str) -> bool {
-    let regex = Regex::new(r"(?<AC>[0-9]{2})[ \.]?(?<ID>[0-9]{2})").unwrap();
+    let regex = Regex::new(r"(?<AC>[0-9]{2})[ \.]?(?<ID>[0-9]{2})").unwrap(); // Safe unwrap since
+                                                                              // this is a literal
+                                                                              // that does not
+                                                                              // change.
     regex.is_match(code)
 }
 
