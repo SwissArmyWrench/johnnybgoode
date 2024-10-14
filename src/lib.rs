@@ -35,7 +35,16 @@ impl Config {
         let mut path = dir.to_path_buf();
         path.push("config.yaml");
         let conf = File::open(path).expect("Unable to open file.");
-        let config: Config = serde_yaml::from_reader(conf).expect("Unable to parse YAML.");
+        let mut config: Config = serde_yaml::from_reader(conf).expect("Unable to parse YAML.");
+        if config.regex != None {
+            match Regex::new(&config.regex.clone().expect("can't unwrap!")) {
+                Ok(_) => {}
+                Err(_) => {
+                    eprintln!("Error JBG-1028: The supplied regex pattern cannot be compiled. The default will be used instead.");
+                    {config.regex = None;}
+                }
+            }
+        }
         config
     }
 }
@@ -178,7 +187,7 @@ impl JohnnyLevel {
             JohnnyLevel::Individual(loc_code) => {
                 // println!("ATTEMPTING TO PARSE {}", &sliceable); // enable for debug verbosity
 
-                let regex = Regex::new(r"[0-9]{2}[ \.]?(?<KEY>[0-9]{2})").unwrap();
+                let regex = Regex::new(r"[0-9]{2}[ \.]?(?<KEY>[0-9]{2})").unwrap(); // SAFE
                 let caps = regex.captures(loc_code).unwrap();
                 str::parse::<i32>(&caps["KEY"]).expect("Regex match failed")
             } // returns ID from DAC.ID
@@ -212,8 +221,7 @@ pub fn scan_to_map(config: &Config) -> HashMap<String, PathBuf> {
 
 fn graceful_crash(code: u16) {
     // impl some type of lookup here
-    eprintln!("Unexpected failure: Error JBG-{code}");
-    eprintln!("Gracefully exiting...");
+    eprintln!("Unexpected failure: Error JBG-{code}, gracefully exiting...");
     std::process::exit(0);
 }
 
@@ -224,10 +232,17 @@ pub fn get_path(config: &Config, location: &str) -> PathBuf {
                                   // eprintln!("Location: {0}\nPath: {1:?}", &location, &path);
     let unwrapped: &PathBuf;
     match path {
-        Some(returned_path) => {unwrapped = returned_path;},
-        None => {eprintln!("Johnnybgoode cannot find any folder corresponding to location code \"{}\"", location);
-                graceful_crash(3077);
-                 unreachable!();}
+        Some(returned_path) => {
+            unwrapped = returned_path;
+        }
+        None => {
+            eprintln!(
+                "Johnnybgoode cannot find any folder corresponding to location code \"{}\"",
+                location
+            );
+            graceful_crash(3077);
+            unreachable!();
+        }
     };
     unwrapped.to_owned() // Unwraps the Option and turns it to a PathBuf, not a reference to one.
 }
@@ -291,7 +306,7 @@ fn extract_area(catnumber: i32) -> i32 {
 }
 
 fn extract_cat(code: &str) -> Result<i32, ParseIntError> {
-    let regex = Regex::new(r"(?<cat>[0-9]{2})[ \.]?[0-9]{2}").unwrap();
+    let regex = Regex::new(r"(?<cat>[0-9]{2})[ \.]?[0-9]{2}").unwrap(); // SAFE
     let capture = &regex.captures(code).unwrap()["cat"];
     str::parse::<i32>(capture)
     /*
