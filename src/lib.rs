@@ -54,6 +54,7 @@ pub struct Command {
     config: Config,
 }
 
+
 impl Command {
     // Parses out a command line command and arguments into a Command struct instance
     pub fn new(arguments_vec: &[String], config: Config) -> Command {
@@ -108,7 +109,6 @@ enum Subcommand {
 }
 
 #[derive(Clone, PartialEq, Eq)]
-
 pub struct JohnnyFolder {
     path: PathBuf,
     name: String,
@@ -147,6 +147,7 @@ impl PartialOrd for JohnnyFolder {
         Some(selfkey.cmp(&otherkey))
     }
 }
+
 #[derive(Clone, PartialEq, Eq)]
 pub enum JohnnyLevel {
     Root,
@@ -221,7 +222,13 @@ pub fn scan_to_map(config: &Config) -> HashMap<String, PathBuf> {
 
 fn graceful_crash(code: u16) {
     // impl some type of lookup here
-    eprintln!("Unexpected failure: Error JBG-{code}, gracefully exiting...");
+    let err_str = include_str!("err_table");
+    // println!("{}", &err_str);
+    let  err_table: HashMap<u16, &str> = Default::default();
+    let err_table = err_str.split("\n").for_each(|item| {item.split(" | "); });
+    println!("{:?}", &err_table);
+    // let msg = err_table[&code];
+    eprintln!("Unexpected failure: Error JBG-{code}\n");
     std::process::exit(0);
 }
 
@@ -254,6 +261,7 @@ fn extract_location(config: &Config, path: &Path) -> String {
         None => Regex::new(r"(?<AC>[0-9]{2})[ \.]?(?<ID>[0-9]{2})").unwrap(), // Create the main regex to match JD
     };
     let regex_out = regex.captures(path.to_str().unwrap()); // Unsafe unwrap, needs handled
+    match regex_out { None => {graceful_crash(1001);}, Some(_) => {} };
     let caps = regex_out.unwrap();
     format!("{}.{}", &caps["AC"], &caps["ID"])
 }
