@@ -1,2 +1,4 @@
-3077: An invalid location code was passed. Either this was a typo of a valid code, or an incorrect argument entirely.
-1001: This most likely means that an incorrectly named folder exists at the ID level. 
+{ "3077": "An invalid location code was passed. Either this was a typo of a valid code, or an incorrect argument entirely.",
+    "1001": "This most likely means that an incorrectly named folder exists at the ID level.",
+    "1028": "The regex pattern specified in the config cannot be parsed. The default will be used instead."
+}

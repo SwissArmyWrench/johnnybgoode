@@ -6,6 +6,7 @@ use directories::ProjectDirs;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
+use serde_json::Value;
 use std::{
     cmp::Ordering,
     collections::HashMap,
@@ -188,8 +189,11 @@ impl JohnnyLevel {
             JohnnyLevel::Individual(loc_code) => {
                 // println!("ATTEMPTING TO PARSE {}", &sliceable); // enable for debug verbosity
 
-                let regex = Regex::new(r"[0-9]{2}[ \.]?(?<KEY>[0-9]{2})").unwrap(); // SAFE
-                let caps = regex.captures(loc_code).unwrap();
+                let regex = Regex::new(r"[0-9]{2}[ \.]?(?<KEY>[0-9]{2})").unwrap(); // Safe unwrap
+                                                                                    // since it's a
+                                                                                    // string
+                                                                                    // literal
+                let caps = regex.captures(loc_code).unwrap(); // need to determine if this is safe
                 str::parse::<i32>(&caps["KEY"]).expect("Regex match failed")
             } // returns ID from DAC.ID
         }
@@ -222,13 +226,11 @@ pub fn scan_to_map(config: &Config) -> HashMap<String, PathBuf> {
 
 fn graceful_crash(code: u16) {
     // impl some type of lookup here
-    let err_str = include_str!("err_table");
-    // println!("{}", &err_str);
-    let  err_table: HashMap<u16, &str> = Default::default();
-    let err_table = err_str.split("\n").for_each(|item| {item.split(" | "); });
-    println!("{:?}", &err_table);
-    // let msg = err_table[&code];
-    eprintln!("Unexpected failure: Error JBG-{code}\n");
+    let code = code.to_string();
+    let err_json = serde_json::from_str::<Value>(include_str!("err_table.json")).unwrap();
+    let err_str = err_json.get(&code).unwrap();
+    eprintln!("[ FATL ]: Unexpected failure: Error JBG-{code}\n[ INFO: {err_str}");
+    // eprintln!("INFO: {}", err_str);
     std::process::exit(0);
 }
 
