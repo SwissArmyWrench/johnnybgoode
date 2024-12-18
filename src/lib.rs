@@ -7,6 +7,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use serde_json::Value;
+use no_panic::no_panic;
 use std::{
     cmp::Ordering,
     collections::HashMap,
@@ -181,7 +182,6 @@ impl JohnnyLevel {
             JohnnyLevel::Individual(code) => extract_area(extract_cat(code).unwrap()),
         }
     }
-
     fn get_sorting_key(&self) -> i32 {
         match self {
             JohnnyLevel::Root => unreachable!("Cannot sort Root folders"),
