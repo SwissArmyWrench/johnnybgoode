@@ -7,7 +7,6 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{self};
 use serde_json::Value;
-use no_panic::no_panic;
 use std::{
     cmp::Ordering,
     collections::HashMap,
