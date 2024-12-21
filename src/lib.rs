@@ -31,8 +31,10 @@ pub struct Config {
 
 impl Config {
     pub fn load() -> Config {
-        let path = if env::var("JOHNNYBGOODE_CONFIG_PATH").is_ok() {
-            PathBuf::from(env::var("JOHNNYBGOODE_CONFIG_PATH").unwrap())
+        let path = if (env::var("JOHNNYBGOODE_CONFIG_PATH").is_ok()) && !(env::var("JOHNNYBGOODE_CONFIG_PATH").unwrap() == "IGNORE") {
+            let env_var_path = PathBuf::from(env::var("JOHNNYBGOODE_CONFIG_PATH").unwrap());
+            if !env_var_path.exists() { graceful_crash(4289); }
+            env_var_path
         } else {
             let dirs = ProjectDirs::from("com", "SwissArmyWrench", "johnnybgoode")
             .expect("Unable to find config directory");
@@ -41,6 +43,7 @@ impl Config {
             path.push("config.yaml");
             path
         };
+        if !path.exists() { graceful_crash(4293) }
         let conf = File::open(path).expect("Unable to open file.");
         let mut config: Config = serde_yaml::from_reader(conf).expect("Unable to parse YAML.");
         if config.regex != None {
@@ -52,6 +55,7 @@ impl Config {
                 }
             }
         }
+        if !config.johnnydecimal_home.exists() { graceful_crash(4271) }
         config
     }
 }
@@ -234,8 +238,7 @@ fn graceful_crash(code: u16) {
     let code = code.to_string();
     let err_json = serde_json::from_str::<Value>(include_str!("err_table.json")).unwrap();
     let err_str = err_json.get(&code).unwrap();
-    eprintln!("[ FATL ]: Unexpected failure: Error JBG-{code}\n[ INFO: {err_str}");
-    // eprintln!("INFO: {}", err_str);
+    eprintln!("[ FATL ]: Unexpected failure: Error JBG-{code}\n[ INFO ]: {err_str}");
     std::process::exit(0);
 }
 

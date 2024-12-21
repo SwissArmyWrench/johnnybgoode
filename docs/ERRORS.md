@@ -9,3 +9,8 @@ JBG-1028 - Regex in config cannot be parsed. Not that this check passing does no
 
 ## 3000-series, nonexistence related.
 JBG-3077 - Location key passed to src/lib.rs -> get_path() that does not exist in the hashmap built my scan_to_map.
+
+## 4000-series, configuation related
+JBG-4289 - Configuration file specified in environment variable does not exist or cannot be accessed
+JBG-4293 - Configuration in default location does not exist or cannot be accessed
+JBG-4271 - Johnnydecimal root folder does not exist or cannot be accessed
