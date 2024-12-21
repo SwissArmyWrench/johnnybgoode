@@ -10,6 +10,8 @@ Below is a table that explains where to place this folder, depending on your sys
 | Linux | /home/Alice/.config/johnnybgoode/config.yaml |
 | MacOS | /Users/Alice/Library/Application Support/com.SwissArmyWrench.johnnybgoode/config.yaml |
 
+If you wish to put your config file somewhere else, you can provide a full path to it in the `JOHNNYBGOODE_CONFIG_PATH` environment variable. To disable this, you can unset the variable, or set it to `IGNORE`.
+
 With this config file in place, and the configuration setup as directed in CONFIGURATION.md, you can call johnnybgoode from the command line, either using an alias that corresponds to the executable itself, or by adding it to PATH. This will be automated with an installer script at some point in the future, but for now, this will need to be done manually.
 
 # Deploying for development
