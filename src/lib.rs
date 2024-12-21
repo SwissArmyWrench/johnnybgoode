@@ -14,6 +14,7 @@ use std::{
     io::Write,
     num::ParseIntError,
     path::{Path, PathBuf},
+    env
 }; // Used to collect arguments from command line
 use walkdir::WalkDir; // Used to get the contents of folder
 
@@ -30,15 +31,20 @@ pub struct Config {
 
 impl Config {
     pub fn load() -> Config {
-        let dirs = ProjectDirs::from("com", "SwissArmyWrench", "johnnybgoode")
+        let path = if env::var("JOHNNYBGOODE_CONFIG_PATH").is_ok() {
+            PathBuf::from(env::var("JOHNNYBGOODE_CONFIG_PATH").unwrap())
+        } else {
+            let dirs = ProjectDirs::from("com", "SwissArmyWrench", "johnnybgoode")
             .expect("Unable to find config directory");
-        let dir = dirs.config_local_dir();
-        let mut path = dir.to_path_buf();
-        path.push("config.yaml");
+            let dir = dirs.config_local_dir();
+            let mut path = dir.to_path_buf();
+            path.push("config.yaml");
+            path
+        };
         let conf = File::open(path).expect("Unable to open file.");
         let mut config: Config = serde_yaml::from_reader(conf).expect("Unable to parse YAML.");
         if config.regex != None {
-            match Regex::new(&config.regex.clone().expect("can't unwrap!")) {
+             match Regex::new(&config.regex.clone().expect("can't unwrap!")) {
                 Ok(_) => {}
                 Err(_) => {
                     eprintln!("Error JBG-1028: The supplied regex pattern cannot be compiled. The default will be used instead.");
